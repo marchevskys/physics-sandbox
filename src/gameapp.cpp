@@ -1,6 +1,9 @@
 #include "gameapp.h"
 
 #include "logger.h"
+
+#include "gameobject.h"
+#include "mesh.h"
 #include "physbody.h"
 #include "window.h"
 
@@ -12,20 +15,18 @@ GameApp::GameApp() {
 
 void GameApp::play() {
 
-    double massMatrix[4];
-    PhysBody ground(CollisionCuboid(100, 100, .1));
-    PhysBody::origin = {0, 0, 2.0};
-    PhysBody body(CollisionSphere(1.0), {1.0, 1.0, 1.0, 1.0});
-    //double force[3]{0, 100, 0};
-    //body.setForce(force);
+    //    PhysBody groundPhysics(CollisionCuboid(100, 100, .1));
+    //    PhysBody::origin = {0, 0, 2.0};
+    //    PhysBody body(CollisionSphere(1.0), {1.0, 1.0, 1.0, 1.0});
 
-    while (m_window->active()) {
+    Mesh mesh(MeshData::generateCube());
+    while (m_window && m_window->active()) {
         // todo
+        PhysBody::updatePhysics(1.0 / 60.0);
         m_window->refresh();
     }
 
     for (int i = 0; i < 200; i++) {
-        PhysBody::updatePhysics(1.0 / 60.0);
     }
 }
 
