@@ -1,5 +1,5 @@
 #include "mesh.h"
-//#include "meshdata.h"
+#include "logger.h"
 
 //#include <assimp/Importer.hpp>
 //#include <assimp/postprocess.h>
@@ -13,10 +13,45 @@
 
 //using namespace std;
 
-Mesh::Mesh(MeshData &&mData) {
-    auto vertexArray = mData.m_vertexArray;
-    auto indexArray = mData.indices;
-    auto type = mData.m_type;
+Mesh::Mesh() {
+    float vertices[] = {
+        0.5f, 0.5f, 0.0f,   // top right
+        0.5f, -0.5f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f, // bottom left
+        -0.5f, 0.5f, 0.0f   // top left
+    };
+    unsigned int indices[] = {
+        // note that we start from 0!
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glBindVertexArray(0);
+    numOfVertices = 6;
+}
+
+Mesh::Mesh(const MeshData &mData) {
+    //    auto vertexArray = mData.m_vertexArray;
+    //    auto indexArray = mData.m_indices;
+    //    auto type = mData.m_type;
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -26,13 +61,13 @@ Mesh::Mesh(MeshData &&mData) {
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertexArray.size() * sizeof(GLfloat),
-                 vertexArray.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, mData.m_vertexArray.size() * sizeof(GLfloat),
+                 mData.m_vertexArray.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexArray.size() * sizeof(GLuint),
-                 indexArray.data(), GL_STATIC_DRAW);
-    numOfVertices = indexArray.size();
-    switch (type) {
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mData.m_indexArray.size() * sizeof(GLuint),
+                 mData.m_indexArray.data(), GL_STATIC_DRAW);
+    numOfVertices = mData.m_indexArray.size();
+    switch (mData.m_type) {
     case MeshType::V: {
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat),
                               (GLvoid *)(0 * sizeof(GLfloat)));
@@ -126,8 +161,9 @@ std::vector<scalar> makeSingleArray(const std::vector<scalar> &positions, const 
         break;
 
     case MeshType::VTN:
-        if (positions.size() != normals.size() || positions.size() != texcoords.size() / 2 * 3)
+        if (positions.size() != normals.size() || positions.size() != texcoords.size() / 2 * 3) {
             throw(error + "VTN");
+        }
         array.reserve(positions.size() + normals.size() + texcoords.size());
         for (int i = 0; i < positions.size(); ++i) {
             array.push_back(positions[i]);
@@ -145,50 +181,50 @@ std::vector<scalar> makeSingleArray(const std::vector<scalar> &positions, const 
     return array;
 }
 
-MeshData MeshData::generateCube(MeshType type) {
+void MeshData::generateCube(std::array<float, 3> scale, MeshType type) {
 
     std::vector<float> positions{
-        -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
-        -0.5f, 0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
+        -1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,
+        -1.0f, 1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
 
-        -0.5f, -0.5f, 0.5f,
-        0.5f, -0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f,
-        -0.5f, 0.5f, 0.5f,
-        -0.5f, -0.5f, 0.5f,
+        -1.0f, -1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f,
+        -1.0f, -1.0f, 1.0f,
 
-        -0.5f, 0.5f, 0.5f,
-        -0.5f, 0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, 0.5f,
-        -0.5f, 0.5f, 0.5f,
+        -1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f,
 
-        0.5f, 0.5f, 0.5f,
-        0.5f, 0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
 
-        -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, 0.5f,
-        0.5f, -0.5f, 0.5f,
-        -0.5f, -0.5f, 0.5f,
-        -0.5f, -0.5f, -0.5f,
+        -1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,
+        -1.0f, -1.0f, 1.0f,
+        -1.0f, -1.0f, -1.0f,
 
-        -0.5f, 0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
-        0.5f, 0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f,
-        -0.5f, 0.5f, 0.5f,
-        -0.5f, 0.5f, -0.5f};
+        -1.0f, 1.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, -1.0f};
     std::vector<float> normals{
         0.0f, 0.0f, -1.0f,
         0.0f, 0.0f, -1.0f,
@@ -275,17 +311,23 @@ MeshData MeshData::generateCube(MeshType type) {
         0.0f, 0.0f,
         0.0f, 1.0f};
 
+    for (int i = 0; i < positions.size(); i += 3) {
+        positions[i] *= scale[0];
+        positions[i + 1] *= scale[1];
+        positions[i + 2] *= scale[2];
+    }
     MeshData result;
     result.m_vertexArray = makeSingleArray(positions, normals, texcoords, type);
-    result.indices.reserve(36);
+    result.m_indexArray.resize(36);
     result.m_type = type;
     for (int i = 0; i < 36; i++)
-        result.indices[i] = i;
-
-    return result;
+        result.m_indexArray[i] = i;
 }
 
-MeshData MeshData::generateGeosphere(MeshType type) {
+void MeshData::generateSphere(uint resolution, MeshType type) {
+}
+
+void MeshData::generateGeosphere(MeshType type) {
     std::vector<uint> indices{
         2, 1, 0, 3, 2, 0, 4, 3, 0, 5, 4, 0, 1, 5, 0, 11, 6, 7, 11, 7,
         8, 11, 8, 9, 11, 9, 10, 11, 10, 6, 1, 2, 6, 2, 3, 7, 3, 4, 8, 4,
@@ -304,16 +346,15 @@ MeshData MeshData::generateGeosphere(MeshType type) {
         0.724f, -0.526f, -0.447f,
         0.000f, 0.000f, -1.000f};
 
-    MeshData result;
-    std::vector<scalar> texcoords;
-    if (type == VT || type == VTN) {
-        texcoords.reserve(positions.size());
-        std::fill(texcoords.begin(), texcoords.end(), 0.f);
-    }
-    result.m_vertexArray = makeSingleArray(positions, positions, texcoords, type);
-    result.indices.reserve(36);
-    for (int i = 0; i < 36; i++)
-        result.indices[i] = i;
+    //    for (auto &p : positions)
+    //        p *= 30;
 
-    return result;
+    //    std::vector<scalar> texcoords;
+    //    if (type == VT || type == VTN) {
+    //        texcoords.resize(positions.size() / 3 * 2);
+    //        std::fill(texcoords.begin(), texcoords.end(), 0.f);
+    //    }
+    //m_vertexArray = makeSingleArray(positions, positions, texcoords, type);
+    m_vertexArray = positions;
+    m_indexArray = indices;
 }

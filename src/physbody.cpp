@@ -109,23 +109,23 @@ std::array<dFloat, 4> PhysBody::momentCuboid(dFloat mass, dFloat w, dFloat l, dF
     return {mass, Ixx, Iyy, Izz};
 }
 
-void PhysBody::setForce(dFloat force[]) /// TODO force
+void PhysBody::setForce(std::array<dFloat, 3> force) /// TODO force
 {
     data.force[0] = force[0];
     data.force[1] = force[1];
     data.force[2] = force[2];
 }
 
-void PhysBody::getMatrix(dFloat values[]) {
-    NewtonBodyGetMatrix(m_body, values);
+void PhysBody::getMatrix(std::array<dFloat, 16> values) {
+    NewtonBodyGetMatrix(m_body, values.data());
 }
 
-void PhysBody::getPosition(dFloat values[]) {
-    NewtonBodyGetPosition(m_body, values);
+void PhysBody::getPosition(std::array<dFloat, 3> values) {
+    NewtonBodyGetPosition(m_body, values.data());
 }
 
-void PhysBody::getVelocity(dFloat velocity[]) {
-    NewtonBodyGetVelocity(m_body, velocity);
+void PhysBody::getVelocity(std::array<dFloat, 3> velocity) {
+    NewtonBodyGetVelocity(m_body, velocity.data());
 }
 
 void PhysBody::createWorld() {

@@ -5,17 +5,21 @@
 
 class PhysBody;
 class Mesh;
+class Shader;
 
 class GameObject {
     std::array<double, 16> m_matrix;
     std::vector<GameObject> m_child;
     PhysBody *m_body = nullptr;
     Mesh *m_mesh = nullptr;
+    Shader *m_shader = nullptr;
 
   public:
-    GameObject();
-    GameObject(PhysBody &&pb, Mesh &&m_mesh);
-    void update();
+    GameObject(int);
+    static void updateAllPhysics(double dt);
+    static void createPhysicsWorld();
+    static void destroyPhysicsWorld();
+    void render();
     ~GameObject();
 };
 

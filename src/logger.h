@@ -8,9 +8,9 @@
 #include <cstring>
 #include <iostream>
 
-#define _LOG_INFO_FILE     //<< ", file: " << __FILE__
-#define _LOG_INFO_FUNCTION //<< "    " << __FUNCTION__
-#define _LOG_INFO_LINE     //<< "  line: " << __LINE__
+#define _LOG_INFO_FILE << ", file: " << __FILE__
+#define _LOG_INFO_FUNCTION << "    " << __FUNCTION__
+#define _LOG_INFO_LINE << "  line: " << __LINE__
 #define DLOG(...)           \
     std::cout << "LOG: ";   \
     std::cout, __VA_ARGS__; \

@@ -5,7 +5,7 @@
 #include <type_traits>
 
 #define _NEWTON_USE_DOUBLE
-
+// it does not work with single precision now
 #ifdef _NEWTON_USE_DOUBLE
 #define dFloat double
 #else
@@ -53,10 +53,10 @@ class PhysBody {
     static std::array<dFloat, 4> momentCuboid(dFloat mass, dFloat w, dFloat l, dFloat h, dFloat shellNess = 0.0);
     std::array<dFloat, 4> getMassAndInertiaMoment() const;
 
-    void setForce(dFloat force[3]);
-    void getMatrix(dFloat values[16]);
-    void getPosition(dFloat values[3]);
-    void getVelocity(dFloat *velocity);
+    void setForce(std::array<dFloat, 3> force);
+    void getMatrix(std::array<dFloat, 16> values);
+    void getPosition(std::array<dFloat, 3> values);
+    void getVelocity(std::array<dFloat, 3> velocity);
 
     static void createWorld();
     static void destroyWorld();

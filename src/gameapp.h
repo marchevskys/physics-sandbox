@@ -2,6 +2,7 @@
 #define GAMEAPP_H
 #include <memory>
 
+// todo: make it singletone
 class Window;
 
 class GameApp {
@@ -11,8 +12,6 @@ class GameApp {
     GameApp();
     ~GameApp();
     void play();
-    void physicsUpdate();
-    void graphicsUpdate();
 };
 
 #endif // GAMEAPP_H
