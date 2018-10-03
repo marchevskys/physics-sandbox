@@ -316,12 +316,13 @@ void MeshData::generateCube(std::array<float, 3> scale, MeshType type) {
         positions[i + 1] *= scale[1];
         positions[i + 2] *= scale[2];
     }
-    MeshData result;
-    result.m_vertexArray = makeSingleArray(positions, normals, texcoords, type);
-    result.m_indexArray.resize(36);
-    result.m_type = type;
+
+    //result.m_vertexArray = makeSingleArray(positions, normals, texcoords, type);
+    m_vertexArray = positions;
+    m_indexArray.resize(36);
+    m_type = type;
     for (int i = 0; i < 36; i++)
-        result.m_indexArray[i] = i;
+        m_indexArray[i] = i;
 }
 
 void MeshData::generateSphere(uint resolution, MeshType type) {

@@ -16,6 +16,9 @@
 #include <sstream>
 #include <string>
 
+Shader *Shader::currentShader = nullptr;
+std::vector<Shader *> Shader::shaders;
+
 void errorLog(const int program, const char *programType) {
     char infoLog[512];
     int success;
@@ -28,8 +31,18 @@ void errorLog(const int program, const char *programType) {
     }
 }
 
+void Shader::setMatricesForAllShaders(int index, const double *const mat) {
+    for (auto &s : Shader::shaders)
+        s->setMat4(index, mat);
+}
+
+void Shader::setMatricesForAllShaders(int index, const float *const mat) {
+    for (auto &s : Shader::shaders)
+        s->setMat4(index, mat);
+}
+
 Shader::Shader(const char *vertexShaderSource, const char *pixelShaderSource, const char *geometryShaderSource) {
-    //printf("%s %d\t windowWidth %d\t windowHeight %d", __FUNCTION__, __LINE__, windowWidth, windowHeight);
+    shaders.push_back(this);
     int vertexShader = create(vertexShaderSource, Type::VS);
     int fragmentShader = create(pixelShaderSource, Type::PS);
     int geometryShader = -1;
@@ -168,16 +181,22 @@ void Shader::setMat4(int index, const glm::mat4 &mat) const {
 }
 
 void Shader::setMat4(int index, const double *const mat) const {
+
     float fMat[16];
     for (int i = 0; i < 16; i++)
         fMat[i] = static_cast<float>(mat[i]);
     glUniformMatrix4fv(index, 1, GL_FALSE, fMat);
 }
 
+void Shader::setMat4(int index, const float *const mat) const {
+    glUniformMatrix4fv(index, 1, GL_FALSE, mat);
+}
+
 void Shader::use() {
     //glUniform1f(glGetUniformLocation(program, "time"), (float)globalTime);
-
-    glUseProgram(program);
+    if (currentShader != this)
+        glUseProgram(program);
+    currentShader = this;
 }
 
 Shader::operator int() const {

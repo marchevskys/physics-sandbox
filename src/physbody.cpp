@@ -27,7 +27,7 @@ CollisionShape::CollisionShape() {
 
 CollisionShape::~CollisionShape() {
     DLOG("collision destructed");
-    //NewtonDestroyCollision(m_collision); // WARNING IT MAY DESTROY OBJECT'S COLLISION
+    NewtonDestroyCollision(m_collision); // WARNING IT MAY DESTROY OBJECT'S COLLISION
 }
 
 CollisionSphere::CollisionSphere(dFloat radius) {
@@ -48,7 +48,7 @@ PhysBody::PhysBody(CollisionShape &&shape, std::array<dFloat, 4> massMatrix) {
     if (massMatrix[0] != 0.0)
         NewtonBodySetMassMatrix(m_body, massMatrix[0], massMatrix[1], massMatrix[2], massMatrix[3]);
     NewtonBodySetForceAndTorqueCallback(m_body, setForcesAndTorques);
-    //turnOffDefaultResistance();
+    turnOffDefaultResistance();
     //NewtonBodySetContinuousCollisionMode(m_body, 1);      // for very high speed objects
     NewtonBodySetUserData(m_body, static_cast<void *>(&data));
 
@@ -68,10 +68,10 @@ void PhysBody::setForcesAndTorques(const NewtonBody *const body, dFloat timestep
     dFloat pos[4];
     NewtonBodyGetPosition(body, pos);
 
-    if (NewtonBodyGetID(body) == 3) {
-        std::cout.precision(5);
-        DLOG("step", step++, " sleep: ", NewtonBodyGetSleepState(body), pos[0], pos[1], pos[2]);
-    }
+    //    if (NewtonBodyGetID(body) == 2) {
+    //        std::cout.precision(5);
+    //        DLOG("step", step++, " sleep: ", NewtonBodyGetSleepState(body), pos[0], pos[1], pos[2]);
+    //    }
 }
 
 void PhysBody::turnOffDefaultResistance() {
@@ -118,6 +118,24 @@ void PhysBody::setForce(std::array<dFloat, 3> force) /// TODO force
 
 void PhysBody::getMatrix(std::array<dFloat, 16> values) {
     NewtonBodyGetMatrix(m_body, values.data());
+}
+
+void PhysBody::getMatrix(std::array<float, 16> fValues) {
+    std::array<double, 16> values;
+    NewtonBodyGetMatrix(m_body, values.data());
+    for (int i = 0; i < 16; i++)
+        fValues[i] = static_cast<float>(values[i]);
+}
+
+void PhysBody::getMatrix(double *values) {
+    NewtonBodyGetMatrix(m_body, values);
+}
+
+void PhysBody::getMatrix(float *values) {
+    double dValues[16];
+    NewtonBodyGetMatrix(m_body, dValues);
+    for (int i = 0; i < 16; i++)
+        values[i] = static_cast<float>(dValues[i]);
 }
 
 void PhysBody::getPosition(std::array<dFloat, 3> values) {

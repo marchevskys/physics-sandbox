@@ -8,7 +8,7 @@ class Mesh;
 class Shader;
 
 class GameObject {
-    std::array<double, 16> m_matrix;
+    double m_matrix[16];
     std::vector<GameObject> m_child;
     PhysBody *m_body = nullptr;
     Mesh *m_mesh = nullptr;
