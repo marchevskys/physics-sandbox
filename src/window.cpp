@@ -8,9 +8,13 @@
 #include <functional>
 #include <iostream>
 Window *Window::currentWindow = nullptr;
+
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS && Window::currentWindow) {
+        Window::currentWindow->toggleFullscreen();
+    }
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
@@ -23,7 +27,19 @@ void Window::resize(int width, int height) {
     m_height = height;
 }
 
-Window::Window(int _w, int _h, const char *_name, bool _fillScreen) : m_width(_w), m_height(_h) {
+void Window::toggleFullscreen() {
+    if (m_fullScreen) {
+        glfwSetWindowMonitor(m_window, NULL, 0, 0, m_width, m_height, 1);
+        DLOGN(m_width, m_height);
+        m_fullScreen = false;
+    } else {
+
+        glfwSetWindowMonitor(m_window, glfwGetPrimaryMonitor(), 0, 0, 1920, 1080, 1);
+        m_fullScreen = true;
+    }
+}
+
+Window::Window(int _w, int _h, const char *_name, bool _fullScreen) : m_width(_w), m_height(_h), m_fullScreen(_fullScreen) {
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -36,7 +52,7 @@ Window::Window(int _w, int _h, const char *_name, bool _fillScreen) : m_width(_w
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
 
-    if (_fillScreen) {
+    if (_fullScreen) {
         m_window = glfwCreateWindow(1920, 1080, _name, glfwGetPrimaryMonitor(), NULL);
         glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     } else {
@@ -59,16 +75,19 @@ Window::Window(int _w, int _h, const char *_name, bool _fillScreen) : m_width(_w
         throw("Failed to initialize GLAD");
     }
     glfwSwapInterval(1);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void Window::refresh() {
+
     currentWindow = this;
     glfwSwapBuffers(m_window);
     glfwPollEvents();
     processInput(m_window);
     glClearColor(0.10f, 0.1f, 0.13f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glPolygonMode(GL_FRONT_AND_BACK, /*GL_LINE*/ GL_FILL);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -81,5 +100,6 @@ int Window::active() {
 }
 
 Window::~Window() {
+    glfwDestroyWindow(m_window);
     glfwTerminate();
 }

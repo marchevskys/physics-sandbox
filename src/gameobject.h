@@ -13,6 +13,7 @@ class GameObject {
     PhysBody *m_body = nullptr;
     Mesh *m_mesh = nullptr;
     Shader *m_shader = nullptr;
+    std::vector<PhysBody> pb;
 
   public:
     GameObject(int);

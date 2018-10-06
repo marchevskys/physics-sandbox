@@ -48,13 +48,4 @@ class Mesh {
     ~Mesh();
 };
 
-class LODMesh {
-    std::vector<std::pair<Mesh, scalar>> lods;
-
-  public:
-    void draw(scalar distFactor);
-    LODMesh();
-    ~LODMesh();
-};
-
 #endif // MESH_H

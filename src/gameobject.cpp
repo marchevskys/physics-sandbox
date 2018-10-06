@@ -17,6 +17,7 @@ GameObject::GameObject(int tempValue) {
     {
         PhysBody::origin = {0.0, 0.0, 6.0};
         m_body = new PhysBody(CollisionSphere(1.0), {1.0, 1.0, 1.0, 1.0});
+        m_body->setForce({0, -3, 0});
         md.generateGeosphere(MeshType::V);
         break;
     }
@@ -25,6 +26,13 @@ GameObject::GameObject(int tempValue) {
         PhysBody::origin = {0.0, 0.0, 0.0};
         m_body = new PhysBody((CollisionCuboid(100, 100, .1)));
         md.generateCube({100, 100, .1}, MeshType::V);
+        break;
+    }
+    case 3: // box
+    {
+        PhysBody::origin = {0.0, -50.0, 0.0};
+        m_body = new PhysBody((CollisionCuboid(100, .1, 100)));
+        md.generateCube({100, .1, 100}, MeshType::V);
         break;
     }
     default: {
