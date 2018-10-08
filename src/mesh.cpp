@@ -364,15 +364,6 @@ void MeshData::generateGeosphere(MeshType type) {
         0.724f, -0.526f, -0.447f,
         0.000f, 0.000f, -1.000f};
 
-    //    for (auto &p : positions)
-    //        p *= 30;
-
-    //    std::vector<scalar> texcoords;
-    //    if (type == VT || type == VTN) {
-    //        texcoords.resize(positions.size() / 3 * 2);
-    //        std::fill(texcoords.begin(), texcoords.end(), 0.f);
-    //    }
-    //m_vertexArray = makeSingleArray(positions, positions, texcoords, type);
     m_vertexArray = positions;
     m_indexArray = indices;
 }

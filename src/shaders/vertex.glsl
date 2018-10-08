@@ -1,13 +1,12 @@
 #version 430 core
 #extension GL_ARB_separate_shader_objects : enable
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 normal;
-layout (location = 2) in vec2 texCoord;
-
 layout (location = 0) uniform mat4 model;
 layout (location = 1) uniform mat4 view;
 layout (location = 2) uniform mat4 projection;
 
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec3 normal;
+layout (location = 2) in vec2 texCoord;
 
 out vec4 loc;
 out vec4 lp;

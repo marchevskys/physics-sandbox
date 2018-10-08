@@ -38,6 +38,20 @@ CollisionCuboid::CollisionCuboid(dFloat w, dFloat l, dFloat h) {
     m_collision = NewtonCreateBox(world, w, l, h, 0, nullptr);
 }
 
+void setForcesAndTorques(const NewtonBody *const body, dFloat timestep, int threadIndex) {
+    dFloat mass, Ixx, Iyy, Izz;
+    NewtonBodyGetMass(body, &mass, &Ixx, &Iyy, &Izz);
+    dFloat force[3] = {0, 0, -9.80665 * mass}; // G-force // gravity here
+
+    PhysBody::Data *mydata = static_cast<PhysBody::Data *>(NewtonBodyGetUserData(body));
+    for (int i = 0; i < 3; i++)
+        force[i] += mydata->force[i];
+    NewtonBodySetForce(body, force);
+    NewtonBodySetTorque(body, mydata->torque);
+    dFloat pos[4];
+    NewtonBodyGetPosition(body, pos);
+}
+
 PhysBody::PhysBody(CollisionShape &&shape, std::array<dFloat, 4> massMatrix) {
     auto createMatrix = identityMatrix;
     for (int i = 0; i < 3; i++)
@@ -49,29 +63,10 @@ PhysBody::PhysBody(CollisionShape &&shape, std::array<dFloat, 4> massMatrix) {
         NewtonBodySetMassMatrix(m_body, massMatrix[0], massMatrix[1], massMatrix[2], massMatrix[3]);
     NewtonBodySetForceAndTorqueCallback(m_body, setForcesAndTorques);
     turnOffDefaultResistance();
-    //NewtonBodySetContinuousCollisionMode(m_body, 1);      // for very high speed objects
+    NewtonBodySetContinuousCollisionMode(m_body, 1); // for very high speed objects
     NewtonBodySetUserData(m_body, static_cast<void *>(&data));
 
     DLOG("Object created.");
-}
-
-void PhysBody::setForcesAndTorques(const NewtonBody *const body, dFloat timestep, int threadIndex) {
-    dFloat mass, Ixx, Iyy, Izz;
-    NewtonBodyGetMass(body, &mass, &Ixx, &Iyy, &Izz);
-    dFloat force[3] = {0, 0, -9.80665 * mass}; // G-force // gravity here
-
-    Data *mydata = static_cast<Data *>(NewtonBodyGetUserData(body));
-    for (int i = 0; i < 3; i++)
-        force[i] += mydata->force[i];
-    NewtonBodySetForce(body, force);
-    NewtonBodySetTorque(body, mydata->torque);
-    dFloat pos[4];
-    NewtonBodyGetPosition(body, pos);
-
-    //    if (NewtonBodyGetID(body) == 2) {
-    //        std::cout.precision(5);
-    //        DLOG("step", step++, " sleep: ", NewtonBodyGetSleepState(body), pos[0], pos[1], pos[2]);
-    //    }
 }
 
 void PhysBody::turnOffDefaultResistance() {
@@ -114,6 +109,20 @@ void PhysBody::setForce(std::array<dFloat, 3> force) /// TODO force
     data.force[0] = force[0];
     data.force[1] = force[1];
     data.force[2] = force[2];
+}
+
+void PhysBody::setTorque(std::array<dFloat, 3> torque) {
+    data.torque[0] = torque[0];
+    data.torque[1] = torque[1];
+    data.torque[2] = torque[2];
+}
+
+void PhysBody::setVelocity(std::array<dFloat, 3> velocity) {
+    NewtonBodySetVelocity(m_body, velocity.data());
+}
+
+void PhysBody::setOmega(std::array<dFloat, 3> omega) {
+    NewtonBodySetOmega(m_body, omega.data());
 }
 
 void PhysBody::getMatrix(std::array<dFloat, 16> values) {

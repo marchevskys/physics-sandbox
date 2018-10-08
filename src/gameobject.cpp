@@ -17,7 +17,9 @@ GameObject::GameObject(int tempValue) {
     {
         PhysBody::origin = {0.0, 0.0, 6.0};
         m_body = new PhysBody(CollisionSphere(1.0), {1.0, 1.0, 1.0, 1.0});
-        m_body->setForce({0, -3, 0});
+        //m_body->setForce({0, -3, 0});
+        //m_body->setTorque({3, 0, 0});
+        m_body->setVelocity({0, -40, 0});
         md.generateGeosphere(MeshType::V);
         break;
     }
@@ -36,7 +38,7 @@ GameObject::GameObject(int tempValue) {
         break;
     }
     default: {
-        DLOGN("Bad GameObject type")
+        DLOG("Bad GameObject type")
         throw("");
     }
     }

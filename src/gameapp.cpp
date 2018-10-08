@@ -1,11 +1,10 @@
 #include "gameapp.h"
 #include "gameobject.h"
 #include "logger.h"
-#include "mesh.h"
 
-#include "shader.h"
+#include "visualscene.h"
+
 #include "window.h"
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -19,32 +18,54 @@ GameApp::GameApp() {
 }
 
 void GameApp::play() {
+    VisualScene scene;
+    glm::dmat4 view(glm::lookAt(glm::dvec3(2.0, 3.0, 1.0), glm::dvec3(0.0, 0.0, 0.0), glm::dvec3(0.0, 0.0, 1.0)));
+    scene.createCamera(&view[0][0], 65.f, m_window->getAspectRatio());
 
-    MeshData md;
-    //md.generateGeosphere(MeshType::V);
-    md.generateCube({1, .1, 1}, MeshType::V);
-    Mesh mesh(md);
+    // all about mesh
+    double matrix[16] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1};
 
-    GameObject go1(1);
-    GameObject go3(3);
-    GameObject go2(2);
-    //    PhysBody groundPhysics(CollisionCuboid(100, 100, .1));
-    //    PhysBody::origin = {0, 0, 2.0};
-    //    PhysBody body(CollisionSphere(1.0), {1.0, 1.0, 1.0, 1.0});
+    double matrix2[16] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1};
 
-    //GameObject obj1(1);
+    std::vector<uint> indices{
+        2, 1, 0, 3, 2, 0, 4, 3, 0, 5, 4, 0, 1, 5, 0, 11, 6, 7, 11, 7,
+        8, 11, 8, 9, 11, 9, 10, 11, 10, 6, 1, 2, 6, 2, 3, 7, 3, 4, 8, 4,
+        5, 9, 5, 1, 10, 2, 7, 6, 3, 8, 7, 4, 9, 8, 5, 10, 9, 1, 6, 10};
 
+    std::vector<float> positions{
+        0.000f, 0.000f, 1.000f,
+        0.894f, 0.000f, 0.447f,
+        0.276f, 0.851f, 0.447f,
+        -0.724f, 0.526f, 0.447f,
+        -0.724f, -0.526f, 0.447f,
+        0.276f, -0.851f, 0.447f,
+        0.724f, 0.526f, -0.447f,
+        -0.276f, 0.851f, -0.447f,
+        -0.894f, 0.000f, -0.447f,
+        -0.276f, -0.851f, -0.447f,
+        0.724f, -0.526f, -0.447f,
+        0.000f, 0.000f, -1.000f};
+
+    scene.createMesh(positions, indices, MeshType::V, matrix);
+    scene.createMesh(positions, indices, MeshType::V, matrix2);
     while (m_window && m_window->active()) {
         GameObject::updateAllPhysics(1.0 / 60.0); // physics update may work async with rendering
+        scene.setCameraAR(m_window->getAspectRatio());
+        static double variable = 0;
+        variable += 0.05;
+        matrix[12] = 2 * sin(variable);
+        matrix[13] = 2 * cos(variable);
+        matrix[14] = .2 * sin(variable * 7);
+        scene.renderAll();
 
-        glm::mat4 view(glm::lookAt(glm::vec3(4.0f, 6.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
-        Shader::setMatricesForAllShaders(1, &view[0][0]);
-
-        glm::mat4 projection(glm::perspective(glm::radians(65.0f), m_window->getAspectRatio(), 0.1f, 10000.0f));
-        Shader::setMatricesForAllShaders(2, &projection[0][0]);
-        go2.render();
-        go3.render();
-        go1.render();
         m_window->refresh(); // it clears screen as well
     }
 }
