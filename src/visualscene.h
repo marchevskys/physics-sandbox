@@ -4,6 +4,7 @@
 
 #ifndef RENDERER_H
 #define RENDERER_H
+#include "meshdata.h"
 
 #include <list>
 #include <vector>
@@ -23,11 +24,11 @@ class MeshLOD;
 class MeshData;
 class BBox;
 
-class VisualScene {
+class VScene {
     void createDefaultShaders();
 
   public:
-    VisualScene();
+    VScene();
 
     void renderAll() const;
     void clear();
@@ -36,8 +37,7 @@ class VisualScene {
     //Shader *createShader(const char *const vertexPath, const char *const fragmentPath, const char *const geometryPath);
     //void deleteShader(Shader *shader);
 
-    Mesh *createMesh(const std::vector<float> &pointData, const std::vector<unsigned int> &indexData, MeshType type, double *matrix);
-    Mesh *createMesh(MeshData &meshdata);
+    Mesh *createMesh(const MeshData &data, double *matrix);
     void attachMeshMatrix(Mesh *mesh, double *&matrix);
     void deleteMesh(Mesh *mesh);
 
@@ -49,7 +49,7 @@ class VisualScene {
     size_t deleteAllCameras();
     size_t deleteAllShaders();
     size_t deleteAllMeshes();
-    ~VisualScene();
+    ~VScene();
 
   private:
     std::vector<Mesh *> meshes;

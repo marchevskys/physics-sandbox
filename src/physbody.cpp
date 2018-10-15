@@ -15,10 +15,10 @@ static NewtonWorld *world = nullptr;
 std::array<dFloat, 3> PhysBody::origin{0, 0, 0};
 
 const std::array<dFloat, 16> identityMatrix = {
-    1.0f, 0.0f, 0.0f, 0.0f,
-    0.0f, 1.0f, 0.0f, 0.0f,
-    0.0f, 0.0f, 1.0f, 0.0f,
-    0.0f, 0.0f, 0.0f, 1.0f};
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0};
 
 CollisionShape::CollisionShape() {
     DLOG("collision constructed");
@@ -52,7 +52,7 @@ void setForcesAndTorques(const NewtonBody *const body, dFloat timestep, int thre
     NewtonBodyGetPosition(body, pos);
 }
 
-PhysBody::PhysBody(CollisionShape &&shape, std::array<dFloat, 4> massMatrix) {
+PhysBody::PhysBody(const CollisionShape &shape, const std::array<dFloat, 4> massMatrix) {
     auto createMatrix = identityMatrix;
     for (int i = 0; i < 3; i++)
         createMatrix[i + 12] += origin[i];
@@ -63,10 +63,13 @@ PhysBody::PhysBody(CollisionShape &&shape, std::array<dFloat, 4> massMatrix) {
         NewtonBodySetMassMatrix(m_body, massMatrix[0], massMatrix[1], massMatrix[2], massMatrix[3]);
     NewtonBodySetForceAndTorqueCallback(m_body, setForcesAndTorques);
     turnOffDefaultResistance();
-    NewtonBodySetContinuousCollisionMode(m_body, 1); // for very high speed objects
+    //NewtonBodySetContinuousCollisionMode(m_body, 1); // for very high speed objects
     NewtonBodySetUserData(m_body, static_cast<void *>(&data));
 
     DLOG("Object created.");
+}
+
+void PhysBody::setCollision(const CollisionShape &shape) {
 }
 
 void PhysBody::turnOffDefaultResistance() {
@@ -104,7 +107,7 @@ std::array<dFloat, 4> PhysBody::momentCuboid(dFloat mass, dFloat w, dFloat l, dF
     return {mass, Ixx, Iyy, Izz};
 }
 
-void PhysBody::setForce(std::array<dFloat, 3> force) /// TODO force
+void PhysBody::setForce(const dFloat *force) /// TODO force
 {
     data.force[0] = force[0];
     data.force[1] = force[1];
@@ -147,8 +150,8 @@ void PhysBody::getMatrix(float *values) {
         values[i] = static_cast<float>(dValues[i]);
 }
 
-void PhysBody::getPosition(std::array<dFloat, 3> values) {
-    NewtonBodyGetPosition(m_body, values.data());
+void PhysBody::getPosition(double *pos) {
+    NewtonBodyGetPosition(m_body, pos);
 }
 
 void PhysBody::getVelocity(std::array<dFloat, 3> velocity) {

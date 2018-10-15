@@ -29,7 +29,7 @@ class CollisionShape {
 
 class CollisionSphere : public CollisionShape {
   public:
-    CollisionSphere(dFloat radius);
+    CollisionSphere(dFloat radius = 1.0);
     friend class NewtonBody;
 };
 
@@ -45,15 +45,16 @@ class CollisionCuboid : public CollisionShape {
 
 class PhysBody {
   public:
-    //PhysBody();
+    PhysBody();
     //PhysBody(CollisionShape shape, dFloat massMatrix[4]);
-    PhysBody(CollisionShape &&shape, std::array<dFloat, 4> massMatrix = {0, 0, 0, 0});
+    PhysBody(const CollisionShape &shape, const std::array<dFloat, 4> massMatrix = {0, 0, 0, 0});
+    void setCollision(const CollisionShape &shape);
 
     static std::array<dFloat, 4> momentSphere(dFloat mass, dFloat radius, dFloat shellNess = 0.0);
     static std::array<dFloat, 4> momentCuboid(dFloat mass, dFloat w, dFloat l, dFloat h, dFloat shellNess = 0.0);
     std::array<dFloat, 4> getMassAndInertiaMoment() const;
 
-    void setForce(std::array<dFloat, 3> force);
+    void setForce(const double *force);
     void setTorque(std::array<dFloat, 3> torque);
     void setVelocity(std::array<dFloat, 3> velocity);
     void setOmega(std::array<dFloat, 3> omega);
@@ -62,7 +63,7 @@ class PhysBody {
     void getMatrix(std::array<float, 16> values);
     void getMatrix(double *values);
     void getMatrix(float *values);
-    void getPosition(std::array<dFloat, 3> values);
+    void getPosition(dFloat *pos);
     void getVelocity(std::array<dFloat, 3> velocity);
 
     static void createWorld();

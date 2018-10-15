@@ -30,7 +30,7 @@ class Camera {
 };
 
 class Mesh {
-    friend class VisualScene;
+    friend class VScene;
     unsigned int m_VAO = 0, m_VBO = 0, m_EBO = 0;
     unsigned int m_VertexCount = 0;
     double *m_matrix;
@@ -38,7 +38,7 @@ class Mesh {
     bool operator==(const Mesh &other) { return m_VAO == other.m_VAO; }
 
   public:
-    Mesh(const std::vector<GLfloat> &pointData, const std::vector<unsigned int> &indexData, MeshType type, Shader *_shader, double *_matrix)
+    Mesh(const MeshData &mData, Shader *_shader, double *_matrix)
         : m_shader(_shader), m_matrix(_matrix) {
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers(1, &m_VBO);
@@ -48,22 +48,22 @@ class Mesh {
         glBindVertexArray(m_VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferData(GL_ARRAY_BUFFER, pointData.size() * sizeof(GLfloat),
-                     pointData.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, mData.m_vertexArray.size() * sizeof(GLfloat),
+                     mData.m_vertexArray.data(), GL_STATIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexData.size() * sizeof(GLuint),
-                     indexData.data(), GL_STATIC_DRAW);
-        m_VertexCount = indexData.size();
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mData.m_indexArray.size() * sizeof(GLuint),
+                     mData.m_indexArray.data(), GL_STATIC_DRAW);
+        m_VertexCount = mData.m_indexArray.size();
 
-        switch (type) {
-        case MeshType::V: {
+        switch (mData.m_type) {
+        case MeshData::Type::V: {
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat),
                                   (GLvoid *)(0 * sizeof(GLfloat)));
             glEnableVertexAttribArray(0);
 
         } break;
 
-        case MeshType::VT: {
+        case MeshData::Type::VT: {
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
                                   (GLvoid *)(0 * sizeof(GLfloat)));
             glEnableVertexAttribArray(0);
@@ -72,7 +72,7 @@ class Mesh {
             glEnableVertexAttribArray(2);
         } break;
 
-        case MeshType::VN: {
+        case MeshData::Type::VN: {
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
                                   (GLvoid *)(0 * sizeof(GLfloat)));
             glEnableVertexAttribArray(0);
@@ -81,7 +81,7 @@ class Mesh {
             glEnableVertexAttribArray(1);
         } break;
 
-        case MeshType::VTN: {
+        case MeshData::Type::VTN: {
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat),
                                   (GLvoid *)(0 * sizeof(GLfloat)));
             glEnableVertexAttribArray(0);
@@ -93,7 +93,7 @@ class Mesh {
             glEnableVertexAttribArray(2);
         } break;
 
-        case MeshType::VTNB: {
+        case MeshData::Type::VTNB: {
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat),
                                   (GLvoid *)(0 * sizeof(GLfloat)));
             glEnableVertexAttribArray(0);
@@ -146,16 +146,16 @@ class MeshLOD {
     }
 };
 
-VisualScene::VisualScene() {
+VScene::VScene() {
     createDefaultShaders();
 }
 
-void VisualScene::createDefaultShaders() {
+void VScene::createDefaultShaders() {
     shader = new Shader("../GameTest/src/shaders/vertex.glsl", "../GameTest/src/shaders/fragment.glsl");
     shader->use();
 }
 
-void VisualScene::renderAll() const {
+void VScene::renderAll() const {
     // set view and projection
     shader->setMat4(1, camera->getMatrix());
     glm::mat4 projection(glm::perspective(camera->getFOV(), camera->getAspectRatio(), 0.1f, 10000.0f));
@@ -165,49 +165,49 @@ void VisualScene::renderAll() const {
             mesh->render();
 }
 
-void VisualScene::clear() {
+void VScene::clear() {
     glClearColor(0.10f, 0.1f, 0.13f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void VisualScene::clearDepth() {
+void VScene::clearDepth() {
     glClear(GL_DEPTH_BUFFER_BIT);
 }
 
-Mesh *VisualScene::createMesh(const std::vector<GLfloat> &pointData, const std::vector<unsigned int> &indexData, MeshType type, double *matrix) {
-    Mesh *mesh = new Mesh(pointData, indexData, type, shader, matrix);
+Mesh *VScene::createMesh(const MeshData &data, double *matrix) {
+    Mesh *mesh = new Mesh(data, shader, matrix);
 
     meshes.push_back(mesh);
     return mesh;
 }
 
-void VisualScene::deleteMesh(Mesh *mesh) {
+void VScene::deleteMesh(Mesh *mesh) {
     delete mesh;
     mesh = nullptr;
 }
 
-Camera *VisualScene::createCamera(double *_matrix, float _fov, float _ar) {
+Camera *VScene::createCamera(double *_matrix, float _fov, float _ar) {
     camera = new Camera(_matrix, _fov, _ar);
     return camera;
 }
 
-void VisualScene::setCameraAR(float _ar) {
+void VScene::setCameraAR(float _ar) {
     camera->setAspectRatio(_ar);
 }
 
-size_t VisualScene::deleteAllCameras() {
+size_t VScene::deleteAllCameras() {
     delete camera;
     camera = nullptr;
     return 1;
 }
 
-size_t VisualScene::deleteAllShaders() {
+size_t VScene::deleteAllShaders() {
     delete shader;
     shader = nullptr;
     return 1; // number of deletes shaders, now it is one
 }
 
-size_t VisualScene::deleteAllMeshes() {
+size_t VScene::deleteAllMeshes() {
     for (auto &mesh : meshes)
         if (mesh)
             delete mesh;
@@ -216,7 +216,7 @@ size_t VisualScene::deleteAllMeshes() {
     return numOfDeletedMeshes;
 }
 
-VisualScene::~VisualScene() {
+VScene::~VScene() {
     deleteAllCameras();
     deleteAllMeshes();
     deleteAllShaders();

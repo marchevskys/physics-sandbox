@@ -27,19 +27,20 @@ void main()
 {
     vec3 nn = normalize(n);
     nn = normalize(cross(dFdx(wp.xyz), dFdy(wp.xyz)));
-    float le = length(lp.xyz);
-    vec3 nn2 = nn - 0.5* wp.xyz;
-   // nn = le > 0.83f ? nn : nn2;
+   // float le = length(lp.xyz);
+   // vec3 nn2 = nn - 0.5* wp.xyz;
+   //nn = le > 0.83f ? nn : nn2;
     nn = normalize(nn);
     float blick1 = pow(abs(dot(nn, ls[0])), 5);
     float blick2 = pow(abs(dot(nn, ls[1])), 5);
     blick1 = sin(blick1 * 1) * 0.5 + 0.5;
 
     float angle = atan(nn.y / nn.x) / (pi * 2) + 0.2;
+    vec3 diffuse = vec3(1,0,0.2);
 
-//    if(fract((wp.x + wp.y + wp.z)* 1.4) < 0.2)
-//        discard;
-       //FragColor  = mix(vec4(1), vec4(0.7), fract(gl_FragCoord.y * 0.05) > 0.5 != fract(gl_FragCoord.x * 0.05) > 0.5 ? 1 : 0);
-    FragColor = vec4( vec3(blick1 + blick2), 1.0f);
+//    if(fract((lp.x + lp.y + lp.z)* 3.4) < 0.2)
+//        diffuse = vec3(1,0,0);
+   //FragColor  = mix(vec4(1), vec4(0.7), fract(gl_FragCoord.y * 0.05) > 0.5 != fract(gl_FragCoord.x * 0.05) > 0.5 ? 1 : 0);
+    FragColor = vec4( diffuse * blick1 + blick2, 1.0f);
 
 }

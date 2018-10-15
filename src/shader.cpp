@@ -16,9 +16,6 @@
 #include <sstream>
 #include <string>
 
-Shader *Shader::currentShader = nullptr;
-std::vector<Shader *> Shader::shaders;
-
 void errorLog(const int program, const char *programType) {
     char infoLog[512];
     int success;
@@ -31,18 +28,9 @@ void errorLog(const int program, const char *programType) {
     }
 }
 
-void Shader::setMatricesForAllShaders(int index, const double *const mat) {
-    for (auto &s : Shader::shaders)
-        s->setMat4(index, mat);
-}
-
-void Shader::setMatricesForAllShaders(int index, const float *const mat) {
-    for (auto &s : Shader::shaders)
-        s->setMat4(index, mat);
-}
-
 Shader::Shader(const char *vertexShaderSource, const char *pixelShaderSource, const char *geometryShaderSource) {
-    shaders.push_back(this);
+    std::cout << "SHADER CREATED" << std::endl;
+
     int vertexShader = create(vertexShaderSource, Type::VS);
     int fragmentShader = create(pixelShaderSource, Type::PS);
     int geometryShader = -1;
@@ -194,9 +182,8 @@ void Shader::setMat4(int index, const float *const mat) const {
 
 void Shader::use() {
     //glUniform1f(glGetUniformLocation(program, "time"), (float)globalTime);
-    if (currentShader != this)
-        glUseProgram(program);
-    currentShader = this;
+
+    glUseProgram(program);
 }
 
 Shader::operator int() const {
@@ -204,5 +191,6 @@ Shader::operator int() const {
 }
 
 Shader::~Shader() {
+    std::cout << "SHADER DESTROYED" << std::endl;
     glDeleteShader(program); // WHY IT WORKS
 }

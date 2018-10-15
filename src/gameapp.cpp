@@ -1,75 +1,112 @@
 #include "gameapp.h"
-#include "gameobject.h"
-#include "logger.h"
 
+#include "logger.h"
+#include "physbody.h"
 #include "visualscene.h"
 
 #include "window.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/random.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 //#define GLM_ENABLE_EXPERIMENTAL
 //#include <glm/gtx/rotate_vector.hpp>
+#include <list>
 #include <string>
+#include <vector>
 
 GameApp::GameApp() {
-    GameObject::createPhysicsWorld();
+    PhysBody::createWorld();
     m_window.reset(new Window(800, 600, "Main window" /*, true*/));
 }
 
 void GameApp::play() {
-    VisualScene scene;
-    glm::dmat4 view(glm::lookAt(glm::dvec3(2.0, 3.0, 1.0), glm::dvec3(0.0, 0.0, 0.0), glm::dvec3(0.0, 0.0, 1.0)));
-    scene.createCamera(&view[0][0], 65.f, m_window->getAspectRatio());
+    VScene scene;
+    glm::dmat4 view(glm::lookAt(glm::dvec3(2.0, 3.0, 3.0), glm::dvec3(0.0, 0.0, 0.0), glm::dvec3(0.0, 0.0, 1.0)));
+    scene.createCamera(&view[0][0], 75.0f, m_window->getAspectRatio());
 
     // all about mesh
-    double matrix[16] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1};
 
-    double matrix2[16] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1};
+    struct Mood {
+        float anger = 0.0f;
+        float maxLevel = 1.0f;
+        bool lovePeople = false;
+        Mood() {
+            anger = glm::linearRand(0.0f, 1.0f);
+            lovePeople = rand() % 2;
+        }
 
-    std::vector<uint> indices{
-        2, 1, 0, 3, 2, 0, 4, 3, 0, 5, 4, 0, 1, 5, 0, 11, 6, 7, 11, 7,
-        8, 11, 8, 9, 11, 9, 10, 11, 10, 6, 1, 2, 6, 2, 3, 7, 3, 4, 8, 4,
-        5, 9, 5, 1, 10, 2, 7, 6, 3, 8, 7, 4, 9, 8, 5, 10, 9, 1, 6, 10};
+        bool loveSociety(bool someoneIsNearby) {
+            if (anger < 0)
+                lovePeople = true;
+            else if (anger > maxLevel)
+                lovePeople = false;
+            anger = someoneIsNearby ? (anger += 0.01f) : (anger -= 0.01f);
+            anger = anger < -maxLevel ? -maxLevel : anger;
+            anger = anger > maxLevel * 2 ? maxLevel * 2 : anger;
+            return lovePeople;
+        }
+    };
 
-    std::vector<float> positions{
-        0.000f, 0.000f, 1.000f,
-        0.894f, 0.000f, 0.447f,
-        0.276f, 0.851f, 0.447f,
-        -0.724f, 0.526f, 0.447f,
-        -0.724f, -0.526f, 0.447f,
-        0.276f, -0.851f, 0.447f,
-        0.724f, 0.526f, -0.447f,
-        -0.276f, 0.851f, -0.447f,
-        -0.894f, 0.000f, -0.447f,
-        -0.276f, -0.851f, -0.447f,
-        0.724f, -0.526f, -0.447f,
-        0.000f, 0.000f, -1.000f};
+    PhysBody::origin = {0, 0, -1.0};
+    PhysBody floor(CollisionCuboid(1000, 1000, 1));
 
-    scene.createMesh(positions, indices, MeshType::V, matrix);
-    scene.createMesh(positions, indices, MeshType::V, matrix2);
+    MeshData mdata;
+    mdata.addGeosphere();
+    double identityMatrix[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+    scene.createMesh(mdata, identityMatrix);
+
+    class Component;
+    class Object {
+        Object *m_parent = nullptr;
+        PhysBody *m_body = nullptr;
+        Mesh *m_mesh;
+        double m_matrix[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+        std::vector<Object *> children;
+        std::vector<Component *> components;
+
+      public:
+        Object(Object *_parent = nullptr) : m_parent(_parent) {
+        }
+
+        void addChild(Object *){};
+        void refreshPhysics() {
+            if (m_body)
+                for (const auto &c : children)
+                    c->refreshPhysics();
+        }
+
+        void refreshGraphics() {
+            // push matrices to VisualScene
+        }
+    };
+
+    //    class ObjectCreator
+    //    {
+    //        ObjectCreator(const VisualScene& scene){};
+    //        Object* createGeosphere();
+    //        ~ObjectCreator(){};
+    //    };
+
+    //    1.an id (whether it be a string or int)
+    //    2.a vector of components
+    //    3.an entity of a parent, if null, this is a root
+    //    4.a vector of entities as children.
+
     while (m_window && m_window->active()) {
-        GameObject::updateAllPhysics(1.0 / 60.0); // physics update may work async with rendering
+        PhysBody::updatePhysics(1.0 / 60.0); // physics update may work async with rendering
+        scene.clear();
         scene.setCameraAR(m_window->getAspectRatio());
-        static double variable = 0;
-        variable += 0.05;
-        matrix[12] = 2 * sin(variable);
-        matrix[13] = 2 * cos(variable);
-        matrix[14] = .2 * sin(variable * 7);
-        scene.renderAll();
 
+        static double iter = 0;
+        view = glm::lookAt(glm::dvec3(2.0, 3.0, 3.0) * (1. + (iter += .005)), glm::dvec3(0.0, 0.0, 0.0), glm::dvec3(0.0, 0.0, 1.0));
+
+        scene.renderAll();
         m_window->refresh(); // it clears screen as well
     }
 }
 
 GameApp::~GameApp() {
-    GameObject::destroyPhysicsWorld();
+    PhysBody::destroyWorld();
 }

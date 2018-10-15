@@ -23,23 +23,28 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 }
 
 void Window::resize(int width, int height) {
-    m_width = width;
-    m_height = height;
+    if (m_fullScreen) {
+        m_FullscreenWidth = width;
+        m_FullscreenHeight = height;
+    } else {
+        m_WindowedWidth = width;
+        m_WindowedHeight = height;
+    }
 }
 
 void Window::toggleFullscreen() {
     if (m_fullScreen) {
-        glfwSetWindowMonitor(m_window, NULL, 0, 0, m_width, m_height, 1);
-        DLOGN(m_width, m_height);
+        glfwSetWindowMonitor(m_window, NULL, 0, 0, m_WindowedWidth, m_WindowedHeight, 1);
+        DLOGN(m_WindowedWidth, m_WindowedHeight);
         m_fullScreen = false;
     } else {
-
-        glfwSetWindowMonitor(m_window, glfwGetPrimaryMonitor(), 0, 0, 1920, 1080, 1);
+        glfwSetWindowMonitor(m_window, glfwGetPrimaryMonitor(), 0, 0, m_FullscreenWidth, m_FullscreenHeight, 1);
+        DLOGN(m_FullscreenWidth, m_FullscreenHeight);
         m_fullScreen = true;
     }
 }
 
-Window::Window(int _w, int _h, const char *_name, bool _fullScreen) : m_width(_w), m_height(_h), m_fullScreen(_fullScreen) {
+Window::Window(int _w, int _h, const char *_name, bool _fullScreen) : m_WindowedWidth(_w), m_WindowedHeight(_h), m_fullScreen(_fullScreen) {
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -86,13 +91,16 @@ void Window::refresh() {
     glfwSwapBuffers(m_window);
     glfwPollEvents();
     processInput(m_window);
-    glClearColor(0.10f, 0.1f, 0.13f, 1.0f);
+    //glClearColor(0.10f, 0.1f, 0.13f, 1.0f);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 float Window::getAspectRatio() {
-    return static_cast<float>(m_width) / static_cast<float>(m_height);
+    if (m_fullScreen)
+        return static_cast<float>(m_FullscreenWidth) / static_cast<float>(m_FullscreenHeight);
+    else
+        return static_cast<float>(m_WindowedWidth) / static_cast<float>(m_WindowedHeight);
 }
 
 int Window::active() {

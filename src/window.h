@@ -4,7 +4,8 @@
 class GLFWwindow;
 class Window {
     GLFWwindow *m_window = nullptr;
-    int m_width = 100, m_height = 100;
+    int m_WindowedWidth = 100, m_WindowedHeight = 100;
+    int m_FullscreenWidth = 1920, m_FullscreenHeight = 1080;
     bool m_fullScreen = false;
 
   public:

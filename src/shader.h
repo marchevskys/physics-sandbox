@@ -16,9 +16,6 @@ class Shader {
                 PS };
 
   public:
-    static void setMatricesForAllShaders(int index, const double *const mat);
-    static void setMatricesForAllShaders(int index, const float *const mat);
-
     Shader(const char *vPath, const char *fPath, const char *gPath = nullptr);
     int create(const char *source, const Type type);
 
