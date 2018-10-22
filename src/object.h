@@ -3,13 +3,13 @@
 #include <vector>
 
 class PhysBody;
-class Mesh;
+class VisualModel;
 
 class Component;
 class Object {
     Object *m_parent = nullptr;
     PhysBody *m_body = nullptr;
-    Mesh *m_mesh;
+    VisualModel *m_mesh;
     double m_matrix[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
     std::vector<Object *> children;
     std::vector<Component *> components;

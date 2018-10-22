@@ -22,9 +22,9 @@ GameApp::GameApp() {
 }
 
 void GameApp::play() {
-    VScene scene;
+    //VScene scene;
     glm::dmat4 view(glm::lookAt(glm::dvec3(2.0, 3.0, 3.0), glm::dvec3(0.0, 0.0, 0.0), glm::dvec3(0.0, 0.0, 1.0)));
-    scene.createCamera(&view[0][0], 75.0f, m_window->getAspectRatio());
+    //scene.createCamera(&view[0][0], 75.0f, m_window->getAspectRatio());
 
     // all about mesh
 
@@ -55,13 +55,13 @@ void GameApp::play() {
     MeshData mdata;
     mdata.addGeosphere();
     double identityMatrix[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-    scene.createMesh(mdata, identityMatrix);
+    //scene.createMesh(mdata, identityMatrix);
 
     class Component;
     class Object {
         Object *m_parent = nullptr;
         PhysBody *m_body = nullptr;
-        Mesh *m_mesh;
+        VisualModel *m_mesh;
         double m_matrix[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
         std::vector<Object *> children;
         std::vector<Component *> components;
@@ -96,13 +96,13 @@ void GameApp::play() {
 
     while (m_window && m_window->active()) {
         PhysBody::updatePhysics(1.0 / 60.0); // physics update may work async with rendering
-        scene.clear();
-        scene.setCameraAR(m_window->getAspectRatio());
+        //scene.clear();
+        // scene.setCameraAR(m_window->getAspectRatio());
 
         static double iter = 0;
         view = glm::lookAt(glm::dvec3(2.0, 3.0, 3.0) * (1. + (iter += .005)), glm::dvec3(0.0, 0.0, 0.0), glm::dvec3(0.0, 0.0, 1.0));
 
-        scene.renderAll();
+        //scene.renderAll();
         m_window->refresh(); // it clears screen as well
     }
 }

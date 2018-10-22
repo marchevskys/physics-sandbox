@@ -1,9 +1,6 @@
 #include "gameapp.h"
 #include "logger.h"
 
-#include "scene.h"
-//#include "window.h"
-
 #include <exception>
 #include <iostream>
 #include <string>
