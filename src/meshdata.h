@@ -26,7 +26,7 @@ class MeshData {
     void addCube(float scale_x, float scale_y, float scale_z, MeshData::Type type = DEFAULT_MESH_TYPE);
     void addSphere(uint resolution, MeshData::Type type = DEFAULT_MESH_TYPE);
     void addCapsule(uint resolution, MeshData::Type type = DEFAULT_MESH_TYPE);
-    void addGeosphere(MeshData::Type type = DEFAULT_MESH_TYPE);
+    void addIcosahedron(MeshData::Type type = DEFAULT_MESH_TYPE);
     void readFromObj(MeshData::Type type = DEFAULT_MESH_TYPE);
 
     static std::vector<float> makeSingleArray(const std::vector<float> &positions, const std::vector<float> &normals,

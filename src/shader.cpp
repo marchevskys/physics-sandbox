@@ -180,7 +180,7 @@ void Shader::setMat4(int index, const float *const mat) const {
     glUniformMatrix4fv(index, 1, GL_FALSE, mat);
 }
 
-void Shader::use() {
+void Shader::use() const {
     //glUniform1f(glGetUniformLocation(program, "time"), (float)globalTime);
 
     glUseProgram(program);

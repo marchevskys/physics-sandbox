@@ -31,7 +31,7 @@ enum class MeshType {
 // mesh and camera container
 class Scene {
     friend class VisualModel;
-    friend class Camera;
+    Shader *defaultShader;
     std::vector<VisualModel *> m_visualmodels;
     size_t numberOfDeletions = 0;
     void addVisualModel(VisualModel *visualmodel);
@@ -39,11 +39,14 @@ class Scene {
 
   public:
     Scene();
-    void clear();
+    void render(Camera &cam) const;
+    void clear() const;
+    void clearDepth() const;
     ~Scene();
 };
 
 class Camera {
+    friend class Scene;
     Scene *m_scene = nullptr;
     scalar *m_matrix = nullptr;
 
@@ -52,45 +55,39 @@ class Camera {
     float m_NearClip = 0.1f;
     float m_FarClip = 10000.0f;
 
-    float getAspectRatio() { return m_AspectRatio; }
-    void setAspectRatio(float _ar) { m_AspectRatio = _ar; }
-    void attachMatrix(double *_mat);
-
   public:
-    Camera(const Scene &m_scene);
+    void attachMatrix(double *_mat);
+    float getAspectRatio() { return m_AspectRatio; }
+    Camera(Scene *scene);
+    void setAspectRatio(float _ar) { m_AspectRatio = _ar; }
     void setMatrix(scalar *matrix);
-    void takeShot();
+    void setFOV(float fov);
     ~Camera();
 };
 
 class VisualModel {
-    Scene *m_scene = nullptr;
-    const size_t id;
-    static size_t idCounter;
-    scalar *m_matrix /*[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}*/;
-    struct LOD {
-        std::shared_ptr<Material> m_material;
-        std::shared_ptr<Mesh> m_mesh;
-        scalar m_distance;
-    };
-    std::vector<LOD> m_LOD;
-    void render(const scalar distance);
+    friend class Scene;
+    const Scene *m_scene = nullptr;
+    const Material *m_material;
+    const Mesh *m_mesh;
+    scalar *const m_matrix /*[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}*/;
 
   public:
-    VisualModel(Scene &scene);
-    VisualModel(VisualModel &&other);
+    VisualModel(Scene *scene, const Mesh *mesh, const Material *material, scalar *const matrix);
     VisualModel(const VisualModel &other);
+    VisualModel(VisualModel &&other);
     ~VisualModel();
 };
 
 class Mesh {
+    friend class Scene;
     unsigned int m_VAO = 0, m_VBO = 0, m_EBO = 0, m_VertexCount = 0;
-    void render();
+    void render() const;
 
   public:
     Mesh(const MeshData &data);
-    Mesh(const Mesh &rhc);
-    Mesh(Mesh &&rhc);
+    Mesh(const Mesh &rhc) = delete;
+    Mesh(Mesh &&rhc) = delete;
     ~Mesh();
 };
 
@@ -105,7 +102,8 @@ struct Color {
 };
 
 class Material {
-    Shader *shader = nullptr;
+    friend class Scene;
+    const Shader *shader = nullptr;
     Color color = {0.5f, 0.5f, 0.5f};
     float metallic = 0.5f;
     float roughness = 0.5f;

@@ -38,7 +38,7 @@ class Shader {
     void setMat4(int index, const double *const mat) const;
     void setMat4(int index, const float *const mat) const;
 
-    void use();
+    void use() const;
     operator int() const;
     ~Shader();
 };

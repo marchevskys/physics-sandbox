@@ -20,6 +20,7 @@ void processInput(GLFWwindow *window) {
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     Window::currentWindow->resize(width, height);
     glViewport(0, 0, width, height);
+    Window::currentWindow->getAspectRatio();
 }
 
 void Window::resize(int width, int height) {

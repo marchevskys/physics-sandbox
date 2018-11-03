@@ -199,7 +199,7 @@ void MeshData::addCube(float scale_x, float scale_y, float scale_z, MeshData::Ty
 void MeshData::addSphere(uint resolution, MeshData::Type type) {
 }
 
-void MeshData::addGeosphere(MeshData::Type type) {
+void MeshData::addIcosahedron(MeshData::Type type) {
     std::vector<uint> indices{
         2, 1, 0, 3, 2, 0, 4, 3, 0, 5, 4, 0, 1, 5, 0, 11, 6, 7, 11, 7,
         8, 11, 8, 9, 11, 9, 10, 11, 10, 6, 1, 2, 6, 2, 3, 7, 3, 4, 8, 4,

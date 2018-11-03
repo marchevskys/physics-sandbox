@@ -11,10 +11,8 @@
 
 class ShaderManager {
     std::unique_ptr<Shader> flat;
-    std::unique_ptr<Shader> PBR;
-    // a lot of shaders including transparency/shadow/multilight enabled/disabled;
     ShaderManager() {
-        flat.reset(new Shader("../GameTest/src/shaders/vertex.glsl", "../GameTest/src/shaders/fragment.glsl"));
+        flat = std::make_unique<Shader>("../GameTest/src/shaders/vertex.glsl", "../GameTest/src/shaders/fragment.glsl");
         DLOG("Shaders initialized");
     }
 
@@ -23,7 +21,7 @@ class ShaderManager {
         static ShaderManager inst;
         return &inst;
     };
-    Shader *flatShader() { return flat.get(); }
+    const Shader *const flatShader() const { return flat.get(); }
 };
 
 Mesh::Mesh(const MeshData &mData) {
@@ -105,9 +103,10 @@ Mesh::Mesh(const MeshData &mData) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindVertexArray(0);
+    DLOG("mesh created");
 };
 
-void Mesh::render() {
+void Mesh::render() const {
     glBindVertexArray(m_VAO);
     glDrawElements(GL_TRIANGLES, m_VertexCount, GL_UNSIGNED_INT, 0);
 };
@@ -124,33 +123,35 @@ void Scene::addVisualModel(VisualModel *visualmodel) {
 
 Scene::Scene() {
     ShaderManager::GetInstance(); // initialize all shaders
+    m_visualmodels.reserve(100);
+    DLOG("scene created");
+}
+
+void Scene::render(Camera &cam) const {
+    glm::mat4 projection(glm::perspective(cam.m_FieldOfView, cam.m_AspectRatio, 0.1f, 10000.0f));
+    for (const auto &model : m_visualmodels) {
+        if (model) {
+            const auto &modelMatrix = model->m_matrix;
+            const auto &shader = model->m_material->shader;
+            shader->use();
+            shader->setMat4(0, modelMatrix);
+            shader->setMat4(1, cam.m_matrix);
+            shader->setMat4(2, projection);
+            model->m_mesh->render();
+        }
+    }
 }
 
 Scene::~Scene() {
 }
 
-//void VScene::renderAll() const {
-//    // set view and projection
-//    shader->setMat4(1, camera->getMatrix());
-//    glm::mat4 projection(glm::perspective(camera->getFOV(), camera->getAspectRatio(), 0.1f, 10000.0f));
-//    shader->setMat4(2, projection);
-//    for (const auto &mesh : meshes)
-//        if (mesh)
-//            mesh->render();
-//}
+void Scene::clear() const {
+    glClearColor(0.10f, 0.1f, 0.13f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
 
-//void VScene::clear() {
-//    glClearColor(0.10f, 0.1f, 0.13f, 1.0f);
-//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//}
-
-//void VScene::clearDepth() {
-//    glClear(GL_DEPTH_BUFFER_BIT);
-//}
-
-size_t VisualModel::idCounter = 0;
-VisualModel::VisualModel(Scene &scene) : m_scene(&scene), id(idCounter++) {
-    scene.addVisualModel(this);
+void Scene::clearDepth() const {
+    glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 Material::Material() {
@@ -160,6 +161,25 @@ Material::Material() {
 Material::Material(Color _color, float _metallic, float _roughness) : Material() {
 }
 
-void Camera::takeShot() {
-    //for all objects in
+VisualModel::VisualModel(Scene *scene, const Mesh *mesh,
+                         const Material *material, scalar *const matrix) : m_scene(scene), m_mesh(mesh), m_material(material), m_matrix(matrix) {
+    scene->addVisualModel(this);
+    DLOG("VisualModel created");
+}
+
+VisualModel::~VisualModel() {
+}
+
+Camera::Camera(Scene *scene) : m_scene(scene) {
+}
+
+void Camera::setMatrix(scalar *matrix) {
+    m_matrix = matrix;
+}
+
+void Camera::setFOV(float fov) {
+    m_FieldOfView = fov;
+}
+
+Camera::~Camera() {
 }
