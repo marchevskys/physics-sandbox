@@ -12,8 +12,15 @@ Window *Window::currentWindow = nullptr;
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS && Window::currentWindow) {
+
+    auto flipScreenKey = glfwGetKey(window, GLFW_KEY_ENTER);
+    static bool sIsUp = true;
+    if (flipScreenKey == GLFW_PRESS && Window::currentWindow && sIsUp) {
         Window::currentWindow->toggleFullscreen();
+        sIsUp = false;
+    }
+    if (flipScreenKey == GLFW_RELEASE && Window::currentWindow /*&& sIsUp*/) {
+        sIsUp = true;
     }
 }
 

@@ -128,7 +128,7 @@ Scene::Scene() {
 }
 
 void Scene::render(Camera &cam) const {
-    glm::mat4 projection(glm::perspective(cam.m_FieldOfView, cam.m_AspectRatio, 0.1f, 10000.0f));
+    glm::mat4 projection(glm::perspective(glm::radians(cam.m_FieldOfView), cam.m_AspectRatio, 0.1f, 10000.0f));
     for (const auto &model : m_visualmodels) {
         if (model) {
             const auto &modelMatrix = model->m_matrix;
