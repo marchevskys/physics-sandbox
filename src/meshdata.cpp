@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <math.h>
+namespace Graphics {
 std::vector<float> MeshData::makeSingleArray(const std::vector<float> &positions, const std::vector<float> &normals, const std::vector<float> &texcoords,
                                              const MeshData::Type type) {
     std::vector<float> array;
@@ -264,3 +265,4 @@ void MeshData::addIcosahedron(MeshData::Type type) {
     m_vertexArray = std::move(positions);
     m_indexArray = std::move(indices);
 }
+} // namespace Graphics

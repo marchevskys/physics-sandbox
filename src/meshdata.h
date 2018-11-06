@@ -3,6 +3,7 @@
 #include <array>
 #include <vector>
 
+namespace Graphics {
 #define DEFAULT_MESH_TYPE Type::V
 typedef unsigned int uint;
 typedef float Point;
@@ -37,5 +38,5 @@ class MeshData {
     std::vector<uint> m_indexArray;
     MeshData::Type m_type = DEFAULT_MESH_TYPE;
 };
-
+} // namespace Graphics
 #endif // MESHDATA_H

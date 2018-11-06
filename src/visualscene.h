@@ -8,7 +8,7 @@
 
 #include <memory>
 #include <vector>
-
+namespace Graphics {
 typedef double scalar;
 typedef unsigned int uint;
 
@@ -125,5 +125,5 @@ class LightSource {
     scalar *dir;
     Color color;
 };
-
+} // namespace Graphics
 #endif // VISUALSCENE_H

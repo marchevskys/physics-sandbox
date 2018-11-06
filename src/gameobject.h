@@ -1,25 +1,22 @@
 #ifndef GAMEOBJECT_H
 #define GAMEOBJECT_H
-#include <memory>
 #include <array>
-class VisualModel;
-class PhysBody;
-class Material;
-class Scene;
-class Mesh;
+#include <memory>
+
+#include "declarations.h"
 
 class GameObject {
-    std::unique_ptr<VisualModel> m_model;
-    std::unique_ptr<PhysBody> m_body;
-    std::unique_ptr<Material> m_material;
+    std::unique_ptr<Graphics::VisualModel> m_model;
+    std::unique_ptr<Graphics::Material> m_material;
+    std::unique_ptr<Physics::PhysBody> m_body;
 
     double m_matrix[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
     double m_force[3] = {0, 0, 0};
 
   public:
-    GameObject(Scene *scene, Mesh *mesh);
+    GameObject(Graphics::Scene *scene, Graphics::Mesh *mesh);
     void refresh(double dt);
-    PhysBody* getPhysBody() {return m_body.get();};
-    VisualModel* getVisualModel() {return m_model.get();};
+    Physics::PhysBody *getPhysBody() { return m_body.get(); };
+    Graphics::VisualModel *getVisualModel() { return m_model.get(); };
 };
 #endif // GAMEOBJECT_H

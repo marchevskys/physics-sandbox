@@ -10,6 +10,7 @@
 
 #include <functional>
 
+namespace Graphics {
 class ShaderManager {
     //std::unique_ptr<Shader> flat;
     std::vector<Shader> shaders;
@@ -189,3 +190,4 @@ void Camera::setFOV(float fov) {
 
 Camera::~Camera() {
 }
+} // namespace Graphics

@@ -3,6 +3,11 @@
 #include <array>
 #include <initializer_list>
 #include <type_traits>
+class NewtonWorld;
+class NewtonCollision;
+class NewtonBody;
+
+namespace Physics {
 
 #define _NEWTON_USE_DOUBLE
 // it does not work with single precision now
@@ -11,11 +16,6 @@
 #else
 #define dFloat float
 #endif
-
-//namespace Physics {
-class NewtonWorld;
-class NewtonCollision;
-class NewtonBody;
 
 class CollisionShape {
   public:
@@ -85,6 +85,6 @@ class PhysBody {
   private:
     friend class CollisionShape;
 };
-
+} // namespace Physics
 //} // namespace Physics
 #endif // PHYSBODY_H

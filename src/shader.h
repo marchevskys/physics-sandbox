@@ -5,6 +5,7 @@
 //class string;
 //}
 #include <vector>
+namespace Graphics {
 class Shader {
 
     static std::vector<Shader *> shaders;
@@ -33,5 +34,5 @@ class Shader {
     operator int() const;
     ~Shader();
 };
-
+} // namespace Graphics
 #endif // SHADER_H

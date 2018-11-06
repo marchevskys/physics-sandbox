@@ -15,6 +15,7 @@
 #include <sstream>
 #include <string>
 
+namespace Graphics {
 void errorLog(const int program, const char *programType) {
     char infoLog[512];
     int success;
@@ -168,3 +169,4 @@ Shader::~Shader() {
     std::cout << "SHADER DESTROYED" << std::endl;
     glDeleteShader(program); // WHY IT WORKS
 }
+} // namespace Graphics

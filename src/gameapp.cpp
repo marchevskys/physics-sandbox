@@ -20,7 +20,7 @@
 #include <vector>
 
 GameApp::GameApp() {
-    PhysBody::createWorld();
+    Physics::PhysBody::createWorld();
     m_window.reset(new Window(800, 600, "Main window", true));
 }
 
@@ -28,27 +28,27 @@ void GameApp::play() {
 
     glm::dmat4 view;
 
-    PhysBody::origin = {0, 0, -1.5};
-    PhysBody floor(CollisionCuboid(100, 100, 1));
-    PhysBody::origin = {0, 0, 0.0};
+    Physics::PhysBody::origin = {0, 0, -1.5};
+    Physics::PhysBody floor(Physics::CollisionCuboid(100, 100, 1));
+    Physics::PhysBody::origin = {0, 0, 0.0};
 
-    Scene scene;
-    MeshData mdata;
+    Graphics::Scene scene;
+    Graphics::MeshData mdata;
     mdata.addSphere(80);
-    Mesh mesh(mdata);
-    Material material;
+    Graphics::Mesh mesh(mdata);
+    Graphics::Material material;
 
     GameObject o1(&scene, &mesh);
-    PhysBody::origin = {0, 1, 2.0};
+    Physics::PhysBody::origin = {0, 1, 2.0};
     GameObject o2(&scene, &mesh);
-    Camera camera(&scene);
+    Graphics::Camera camera(&scene);
     camera.setFOV(65);
 
-    o1.getPhysBody()->setForce({-1, -1, 0});
+    //o1.getPhysBody()->setForce({-1, -1, 0});
 
     double constexpr dt = 1.0 / 60.0;
     while (m_window && m_window->active()) {
-        PhysBody::updatePhysics(dt); // physics update may work async with rendering
+        Physics::PhysBody::updatePhysics(dt); // physics update may work async with rendering
         scene.clear();
 
         static double iter = 0;
@@ -58,7 +58,7 @@ void GameApp::play() {
         o1.getPhysBody()->getPosition(glm::value_ptr(pos));
         o1.getPhysBody()->getVelocity(glm::value_ptr(vel));
 
-        view = glm::lookAt(glm::dvec3(0.0, 0.0, 3.0) + pos - vel, glm::dvec3(0) + pos - vel * 0.2, glm::dvec3(0.0, 0.0, 1.0));
+        view = glm::lookAt(glm::dvec3(0.01, 0.01, 3.0) + pos, glm::dvec3(0) + pos, glm::dvec3(0.0, 0.0, 1.0));
         //modelMat = glm::rotate(glm::dmat4(1), iter, glm::dvec3(0, 0, 1));
 
         camera.setMatrix(glm::value_ptr(view));
@@ -72,5 +72,5 @@ void GameApp::play() {
 }
 
 GameApp::~GameApp() {
-    PhysBody::destroyWorld();
+    Physics::PhysBody::destroyWorld();
 }

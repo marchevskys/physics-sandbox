@@ -7,6 +7,7 @@
 #include <float.h>
 #include <thread>
 
+namespace Physics {
 //namespace Physics {
 bool prevSleepState = 0;
 static int step = 0;
@@ -22,6 +23,7 @@ const std::array<dFloat, 16> identityMatrix = {
 
 CollisionShape::CollisionShape() {
     DLOG("collision constructed");
+
     m_collision = NewtonCreateNull(world);
 }
 
@@ -185,5 +187,5 @@ void PhysBody::destroyWorld() {
         DLOG("world destroyed");
     }
 }
-
+} // namespace Physics
 //} // namespace Physics
