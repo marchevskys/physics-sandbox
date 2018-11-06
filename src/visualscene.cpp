@@ -6,13 +6,15 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <functional>
 
 class ShaderManager {
-    std::unique_ptr<Shader> flat;
+    //std::unique_ptr<Shader> flat;
+    std::vector<Shader> shaders;
     ShaderManager() {
-        flat = std::make_unique<Shader>("../GameTest/src/shaders/vertex.glsl", "../GameTest/src/shaders/fragment.glsl");
+        shaders.emplace_back("../GameTest/src/shaders/vertex.glsl", "../GameTest/src/shaders/fragment.glsl");
         DLOG("Shaders initialized");
     }
 
@@ -21,10 +23,12 @@ class ShaderManager {
         static ShaderManager inst;
         return &inst;
     };
-    const Shader *const flatShader() const { return flat.get(); }
+    const Shader *const flatShader() const { return &shaders[0]; }
+    const std::vector<Shader> &getAll3DShaders() { return shaders; };
 };
 
 Mesh::Mesh(const MeshData &mData) {
+    m_arraySize = mData.m_vertexArray.size();
     glGenVertexArrays(1, &m_VAO);
     glGenBuffers(1, &m_VBO);
     glGenBuffers(1, &m_EBO);
@@ -38,7 +42,7 @@ Mesh::Mesh(const MeshData &mData) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, mData.m_indexArray.size() * sizeof(GLuint),
                  mData.m_indexArray.data(), GL_STATIC_DRAW);
-    m_VertexCount = mData.m_indexArray.size();
+    m_IndexCount = mData.m_indexArray.size();
 
     switch (mData.m_type) {
     case MeshData::Type::V: {
@@ -104,11 +108,11 @@ Mesh::Mesh(const MeshData &mData) {
 
     glBindVertexArray(0);
     DLOG("mesh created");
-};
+}
 
 void Mesh::render() const {
     glBindVertexArray(m_VAO);
-    glDrawElements(GL_TRIANGLES, m_VertexCount, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, m_IndexCount, GL_UNSIGNED_INT, 0);
 };
 
 Mesh::~Mesh() {
@@ -121,22 +125,24 @@ void Scene::addVisualModel(VisualModel *visualmodel) {
     m_visualmodels.push_back(visualmodel);
 }
 
-Scene::Scene() {
-    ShaderManager::GetInstance(); // initialize all shaders
+Scene::Scene() : allShaders(ShaderManager::GetInstance()->getAll3DShaders()) {
+
     m_visualmodels.reserve(100);
     DLOG("scene created");
 }
 
 void Scene::render(Camera &cam) const {
     glm::mat4 projection(glm::perspective(glm::radians(cam.m_FieldOfView), cam.m_AspectRatio, 0.1f, 10000.0f));
+    for (auto &s : allShaders) {
+        s.setMat4(1, cam.m_matrix);
+        s.setMat4(2, glm::value_ptr(projection));
+    }
     for (const auto &model : m_visualmodels) {
         if (model) {
             const auto &modelMatrix = model->m_matrix;
             const auto &shader = model->m_material->shader;
             shader->use();
             shader->setMat4(0, modelMatrix);
-            shader->setMat4(1, cam.m_matrix);
-            shader->setMat4(2, projection);
             model->m_mesh->render();
         }
     }

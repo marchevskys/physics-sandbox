@@ -22,10 +22,10 @@ class MeshData {
         VTNB // vertex, texture, normal, binormal
     };
 
-    void addCustom(std::vector<float> &&vertexData, std::vector<uint> &&m_indexData, MeshData::Type type = DEFAULT_MESH_TYPE);
-    void addCube(float scale_x, float scale_y, float scale_z, MeshData::Type type = DEFAULT_MESH_TYPE);
-    void addSphere(uint resolution, MeshData::Type type = DEFAULT_MESH_TYPE);
-    void addCapsule(uint resolution, MeshData::Type type = DEFAULT_MESH_TYPE);
+    //void addCustom(std::vector<float> &&vertexData, std::vector<uint> &&m_indexData, MeshData::Type type = DEFAULT_MESH_TYPE);
+    void addCube(float scale_x = 1.f, float scale_y = 1.f, float scale_z = 1.f, MeshData::Type type = DEFAULT_MESH_TYPE);
+    void addSphere(uint resolution = 4, MeshData::Type type = DEFAULT_MESH_TYPE);
+    void addCapsule(uint resolution = 4, MeshData::Type type = DEFAULT_MESH_TYPE);
     void addIcosahedron(MeshData::Type type = DEFAULT_MESH_TYPE);
     void readFromObj(MeshData::Type type = DEFAULT_MESH_TYPE);
 

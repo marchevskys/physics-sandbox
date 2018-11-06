@@ -2,14 +2,15 @@
 // you task is to mush meshes and cameras inside, delete them if necessary
 // you can create multiple visual scenes, they will contain
 
-#ifndef RENDERER_H
-#define RENDERER_H
+#ifndef VISUALSCENE_H
+#define VISUALSCENE_H
 #include "meshdata.h"
 
 #include <memory>
 #include <vector>
 
 typedef double scalar;
+typedef unsigned int uint;
 
 class Scene;
 class Camera;
@@ -31,7 +32,7 @@ enum class MeshType {
 // mesh and camera container
 class Scene {
     friend class VisualModel;
-    Shader *defaultShader;
+    const std::vector<Shader> &allShaders;
     std::vector<VisualModel *> m_visualmodels;
     size_t numberOfDeletions = 0;
     void addVisualModel(VisualModel *visualmodel);
@@ -81,13 +82,19 @@ class VisualModel {
 
 class Mesh {
     friend class Scene;
-    unsigned int m_VAO = 0, m_VBO = 0, m_EBO = 0, m_VertexCount = 0;
+    uint m_VAO = 0, m_VBO = 0, m_EBO = 0, m_IndexCount = 0;
+    uint m_numVertices = 0, m_arraySize = 0;
     void render() const;
 
   public:
     Mesh(const MeshData &data);
+    //Mesh(MeshData&& data) noexcept;
+
     Mesh(const Mesh &rhc) = delete;
     Mesh(Mesh &&rhc) = delete;
+    uint dataSize() { return m_IndexCount * sizeof(uint) + m_arraySize * sizeof(float); }
+    //uint vertexCount() { return m_numVertices; }
+    uint triangleCount() { return m_IndexCount / 3; }
     ~Mesh();
 };
 
@@ -113,4 +120,10 @@ class Material {
     Material(Color _color, float _metallic, float _roughness);
 };
 
-#endif // RENDERER_H
+class LightSource {
+  public:
+    scalar *dir;
+    Color color;
+};
+
+#endif // VISUALSCENE_H

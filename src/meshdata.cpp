@@ -1,6 +1,9 @@
 #include "meshdata.h"
-#include <algorithm>
+#include "logger.h"
 
+#include <algorithm>
+#include <glm/glm.hpp>
+#include <math.h>
 std::vector<float> MeshData::makeSingleArray(const std::vector<float> &positions, const std::vector<float> &normals, const std::vector<float> &texcoords,
                                              const MeshData::Type type) {
     std::vector<float> array;
@@ -197,6 +200,46 @@ void MeshData::addCube(float scale_x, float scale_y, float scale_z, MeshData::Ty
 }
 
 void MeshData::addSphere(uint resolution, MeshData::Type type) {
+#define F(x) static_cast<float>(x)
+
+    const float radius = 1.f;
+    const int numMeridian = resolution * 2; // resolution of mesh
+    const int numParallel = resolution;     // resolution of mesh
+    float parralelDivider = 2.0f * M_PI / (F(numMeridian));
+    float meridianDivider = M_PI / (F(numParallel)) * .9999;
+
+    std::vector<glm::vec2> parallel(numMeridian + 1);
+    for (int i = 0; i <= numMeridian; i++)
+        parallel[i] = glm::vec2(cos(F(i) * parralelDivider), sin(F(i) * parralelDivider)) * radius; // zero circle
+
+    std::vector<float> positions, normals, uvs;
+    positions.reserve((numParallel + 1) * (numMeridian + 1));
+    for (int j = 0; j <= numParallel; j++)
+        for (int i = 0; i <= numMeridian; i++) {
+            auto p = parallel[i] * sin(F(j) * meridianDivider);
+            //positions.emplace_back(p[0], p[1], radius * cos(F(j) * meridianDivider));
+            positions.insert(positions.end(), {p[0], p[1], radius * cos(F(j) * meridianDivider)});
+        }
+
+    std::vector<uint> indices;
+    for (uint i = 0; i < numMeridian; i++)
+        for (uint j = 0; j < numParallel; j++) {
+            auto offset = j * (numMeridian + 1) + i;
+            auto offset_j = (j + 1) * (numMeridian + 1) + i;
+            auto offset_i = j * (numMeridian + 1) + i + 1;
+            auto offset_i_j = (j + 1) * (numMeridian + 1) + i + 1;
+            indices.insert(indices.end(), {offset, offset_j, offset_i});
+            indices.insert(indices.end(), {offset_i, offset_j, offset_i_j});
+        }
+
+    m_vertexArray = std::move(positions);
+    m_indexArray = std::move(indices);
+    //    std::vector<glm::vec2> uvs;
+    //    uvs.reserve(positions.size());
+    //    for (int i = 0; i <= numMeridian; i++)
+    //        for (int j = 0; j <= numParallel; j++) {
+    //            positions.emplace_back(F(i) / F(numMeridian), F(j) / F(numParallel));
+    //        }
 }
 
 void MeshData::addIcosahedron(MeshData::Type type) {

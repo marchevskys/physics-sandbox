@@ -54,17 +54,16 @@ class PhysBody {
     static std::array<dFloat, 4> momentCuboid(dFloat mass, dFloat w, dFloat l, dFloat h, dFloat shellNess = 0.0);
     std::array<dFloat, 4> getMassAndInertiaMoment() const;
 
-    void setForce(const double *force);
+    void setForce(std::array<dFloat, 3> force);
     void setTorque(std::array<dFloat, 3> torque);
     void setVelocity(std::array<dFloat, 3> velocity);
     void setOmega(std::array<dFloat, 3> omega);
 
     void getMatrix(std::array<dFloat, 16> values);
-    void getMatrix(std::array<float, 16> values);
     void getMatrix(double *values);
-    void getMatrix(float *values);
     void getPosition(dFloat *pos);
-    void getVelocity(std::array<dFloat, 3> velocity);
+    void getVelocity(dFloat *velocity);
+    void getAcceleration(dFloat *acceleration);
 
     static void createWorld();
     static void destroyWorld();

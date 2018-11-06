@@ -6,6 +6,7 @@
 #define pi3 1.0471975512
 //layout(origin_upper_left) in vec4 gl_FragCoord;
 
+layout (location = 3) uniform vec3 directLight;
 
 out vec4 FragColor;
 uniform float time;
@@ -30,17 +31,16 @@ void main()
    // float le = length(lp.xyz);
    // vec3 nn2 = nn - 0.5* wp.xyz;
    //nn = le > 0.83f ? nn : nn2;
-    nn = normalize(nn);
+
     float blick1 = pow(abs(dot(nn, ls[0])), 5);
-    float blick2 = pow(abs(dot(nn, ls[1])), 5);
-    blick1 = sin(blick1 * 1) * 0.5 + 0.5;
+
 
     float angle = atan(nn.y / nn.x) / (pi * 2) + 0.2;
     vec3 diffuse = vec3(1,0,0.2);
 
-//    if(fract((lp.x + lp.y + lp.z)* 3.4) < 0.2)
-//        diffuse = vec3(1,0,0);
+    if(fract((lp.x + lp.y + lp.z)* 3.4) < 0.2)
+        diffuse = vec3(0,0,1);
    //FragColor  = mix(vec4(1), vec4(0.7), fract(gl_FragCoord.y * 0.05) > 0.5 != fract(gl_FragCoord.x * 0.05) > 0.5 ? 1 : 0);
-    FragColor = vec4( diffuse * blick1 + blick2, 1.0f);
+    FragColor = vec4( diffuse * 0.3 + blick1, 1.0f);
 
 }

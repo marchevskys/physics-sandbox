@@ -1,6 +1,9 @@
 #include "gameapp.h"
 
 #include "logger.h"
+
+#include "gameobject.h"
+
 #include "physbody.h"
 #include "visualscene.h"
 
@@ -18,68 +21,50 @@
 
 GameApp::GameApp() {
     PhysBody::createWorld();
-    m_window.reset(new Window(800, 600, "Main window" /*, true*/));
+    m_window.reset(new Window(800, 600, "Main window", true));
 }
-
-class GameObject;
-
-class MeshCreator {
-    MeshCreator(){};
-    ~MeshCreator(){};
-
-  public:
-};
-class GameObjectCreator {
-  public:
-    static std::unique_ptr<GameObject> createIcosahedron() {
-    }
-};
-
-class GameObject {
-    std::unique_ptr<VisualModel> m_model;
-    std::unique_ptr<PhysBody> m_body;
-    std::unique_ptr<Material> m_material;
-    scalar m_matrix[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-
-  public:
-    GameObject(Scene *scene, Mesh *mesh) {
-        m_material = std::make_unique<Material>();
-        m_body.reset(new PhysBody(CollisionSphere(1), {1, 1, 1, 1}));
-        m_model.reset(new VisualModel(scene, mesh, m_material.get(), m_matrix));
-    }
-    void refresh(double dt) { m_body->getMatrix(m_matrix); }
-};
 
 void GameApp::play() {
 
     glm::dmat4 view;
 
-    PhysBody::origin = {0, 0, -1.0};
-    PhysBody floor(CollisionCuboid(1000, 1000, 1));
-    PhysBody::origin = {0, 0, 10.0};
+    PhysBody::origin = {0, 0, -1.5};
+    PhysBody floor(CollisionCuboid(100, 100, 1));
+    PhysBody::origin = {0, 0, 0.0};
 
     Scene scene;
     MeshData mdata;
-    mdata.addIcosahedron();
+    mdata.addSphere(80);
     Mesh mesh(mdata);
     Material material;
 
-    GameObject object(&scene, &mesh);
+    GameObject o1(&scene, &mesh);
+    PhysBody::origin = {0, 1, 2.0};
+    GameObject o2(&scene, &mesh);
     Camera camera(&scene);
     camera.setFOV(65);
 
+    o1.getPhysBody()->setForce({-1, -1, 0});
+
+    double constexpr dt = 1.0 / 60.0;
     while (m_window && m_window->active()) {
-        PhysBody::updatePhysics(1.0 / 60.0); // physics update may work async with rendering
+        PhysBody::updatePhysics(dt); // physics update may work async with rendering
         scene.clear();
 
         static double iter = 0;
-        iter += .004;
-        view = glm::lookAt(glm::dvec3(2.0, 3.0, 0.0) * (1.4), glm::dvec3(0.0, 0.0, 0.0), glm::dvec3(0.0, 0.0, 1.0));
+        iter += .04;
+
+        glm::dvec3 pos, vel;
+        o1.getPhysBody()->getPosition(glm::value_ptr(pos));
+        o1.getPhysBody()->getVelocity(glm::value_ptr(vel));
+
+        view = glm::lookAt(glm::dvec3(0.0, 0.0, 3.0) + pos - vel, glm::dvec3(0) + pos - vel * 0.2, glm::dvec3(0.0, 0.0, 1.0));
         //modelMat = glm::rotate(glm::dmat4(1), iter, glm::dvec3(0, 0, 1));
-        view = glm::rotate(view, iter, glm::dvec3(0, 0, 1));
+
         camera.setMatrix(glm::value_ptr(view));
         camera.setAspectRatio(m_window->getAspectRatio());
-        object.refresh(1 / 60);
+        o1.refresh(dt);
+        o2.refresh(dt);
 
         scene.render(camera);
         m_window->refresh(); // it clears screen as well

@@ -107,8 +107,7 @@ std::array<dFloat, 4> PhysBody::momentCuboid(dFloat mass, dFloat w, dFloat l, dF
     return {mass, Ixx, Iyy, Izz};
 }
 
-void PhysBody::setForce(const dFloat *force) /// TODO force
-{
+void PhysBody::setForce(std::array<dFloat, 3> force) {
     data.force[0] = force[0];
     data.force[1] = force[1];
     data.force[2] = force[2];
@@ -132,30 +131,34 @@ void PhysBody::getMatrix(std::array<dFloat, 16> values) {
     NewtonBodyGetMatrix(m_body, values.data());
 }
 
-void PhysBody::getMatrix(std::array<float, 16> fValues) {
-    std::array<double, 16> values;
-    NewtonBodyGetMatrix(m_body, values.data());
-    for (int i = 0; i < 16; i++)
-        fValues[i] = static_cast<float>(values[i]);
-}
+//void PhysBody::getMatrix(std::array<float, 16> fValues) {
+//    std::array<double, 16> values;
+//    NewtonBodyGetMatrix(m_body, values.data());
+//    for (int i = 0; i < 16; i++)
+//        fValues[i] = static_cast<float>(values[i]);
+//}
 
 void PhysBody::getMatrix(double *values) {
     NewtonBodyGetMatrix(m_body, values);
 }
 
-void PhysBody::getMatrix(float *values) {
-    double dValues[16];
-    NewtonBodyGetMatrix(m_body, dValues);
-    for (int i = 0; i < 16; i++)
-        values[i] = static_cast<float>(dValues[i]);
-}
+//void PhysBody::getMatrix(float *values) {
+//    double dValues[16];
+//    NewtonBodyGetMatrix(m_body, dValues);
+//    for (int i = 0; i < 16; i++)
+//        values[i] = static_cast<float>(dValues[i]);
+//}
 
 void PhysBody::getPosition(double *pos) {
     NewtonBodyGetPosition(m_body, pos);
 }
 
-void PhysBody::getVelocity(std::array<dFloat, 3> velocity) {
-    NewtonBodyGetVelocity(m_body, velocity.data());
+void PhysBody::getVelocity(double *velocity) {
+    NewtonBodyGetVelocity(m_body, velocity);
+}
+
+void PhysBody::getAcceleration(double *acceleration) {
+    NewtonBodyGetAcceleration(m_body, acceleration);
 }
 
 void PhysBody::createWorld() {
