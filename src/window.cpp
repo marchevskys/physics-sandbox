@@ -1,25 +1,58 @@
 #include "window.h"
 #include "logger.h"
 
-#include <glad/glad.h>
-
+//#include <glad/glad.h>
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include <functional>
 #include <iostream>
+
 Window *Window::currentWindow = nullptr;
+int Window::primaryScreenWidth, Window::primaryScreenHeight;
+
+class WindowManager {
+    WindowManager() {
+        // glfw: initialize and configure
+        // ------------------------------
+        glfwInit();
+
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
+#endif
+
+        const GLFWvidmode *mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        Window::primaryScreenWidth = mode->width;
+        Window::primaryScreenHeight = mode->height;
+        DLOG("GLFW initialized");
+    }
+    ~WindowManager() {
+        glfwTerminate();
+        DLOG("GLFW terminated");
+    }
+
+  public:
+    static WindowManager *getInstance() {
+        static WindowManager winManager;
+        return &winManager;
+    }
+};
 
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    auto flipScreenKey = glfwGetKey(window, GLFW_KEY_ENTER);
+    auto flipScreenKey = glfwGetKey(window, GLFW_KEY_F);
     static bool sIsUp = true;
     if (flipScreenKey == GLFW_PRESS && Window::currentWindow && sIsUp) {
         Window::currentWindow->toggleFullscreen();
         sIsUp = false;
     }
-    if (flipScreenKey == GLFW_RELEASE && Window::currentWindow /*&& sIsUp*/) {
+    if (flipScreenKey == GLFW_RELEASE && Window::currentWindow) {
         sIsUp = true;
     }
 }
@@ -31,9 +64,10 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 }
 
 void Window::resize(int width, int height) {
+
     if (m_fullScreen) {
-        m_FullscreenWidth = width;
-        m_FullscreenHeight = height;
+        //primaryScreenWidth = width;
+        //primaryScreenHeight = height;
     } else {
         m_WindowedWidth = width;
         m_WindowedHeight = height;
@@ -42,80 +76,87 @@ void Window::resize(int width, int height) {
 
 void Window::toggleFullscreen() {
     if (m_fullScreen) {
-        glfwSetWindowMonitor(m_window, NULL, 0, 0, m_WindowedWidth, m_WindowedHeight, 1);
-        DLOGN(m_WindowedWidth, m_WindowedHeight);
+        glfwSetWindowMonitor(m_window, nullptr, m_xPos, m_yPos, m_WindowedWidth, m_WindowedHeight, 1);
+        glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         m_fullScreen = false;
+        DLOGN(m_WindowedWidth, m_WindowedHeight);
     } else {
-        glfwSetWindowMonitor(m_window, glfwGetPrimaryMonitor(), 0, 0, m_FullscreenWidth, m_FullscreenHeight, 1);
-        DLOGN(m_FullscreenWidth, m_FullscreenHeight);
+        glfwGetWindowPos(m_window, &m_xPos, &m_yPos);
+        glfwSetWindowMonitor(m_window, glfwGetPrimaryMonitor(), 0, 0, primaryScreenWidth, primaryScreenHeight, 1);
+        glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         m_fullScreen = true;
+        DLOGN(primaryScreenWidth, primaryScreenHeight);
     }
 }
 
-Window::Window(int _w, int _h, const char *_name, bool _fullScreen) : m_WindowedWidth(_w), m_WindowedHeight(_h), m_fullScreen(_fullScreen) {
-    // glfw: initialize and configure
-    // ------------------------------
-    glfwInit();
-    glfwWindowHint(GLFW_SAMPLES, 16);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+Window::Window(int width, int height, const char *_name, bool _fullScreen) : m_WindowedWidth(width), m_WindowedHeight(height), m_fullScreen(_fullScreen) {
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
-#endif
+    WindowManager::getInstance();
+    glfwWindowHint(GLFW_SAMPLES, 16);
+
+    m_WindowedWidth = width;
+    m_WindowedHeight = height;
+    m_xPos = (primaryScreenWidth - width) / 2;
+    m_yPos = (primaryScreenHeight - height) / 2;
 
     if (_fullScreen) {
-        m_window = glfwCreateWindow(1920, 1080, _name, glfwGetPrimaryMonitor(), NULL);
+        m_window = glfwCreateWindow(primaryScreenWidth, primaryScreenHeight, _name, glfwGetPrimaryMonitor(), nullptr);
         glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     } else {
-        m_window = glfwCreateWindow(_w, _h, _name, NULL, NULL);
+        m_window = glfwCreateWindow(m_WindowedWidth, m_WindowedHeight, _name, nullptr, nullptr);
+        glfwSetWindowPos(m_window, m_xPos, m_yPos);
         glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
     if (m_window == nullptr) {
         glfwTerminate();
-        throw("Failed to create GLFW window");
+        THROW("Failed to create GLFW window");
     }
     glfwMakeContextCurrent(m_window);
-    //glfwSetWindowTitle(m_window, _name);
 
-    //auto f = std::bind(&Window::framebuffer_size_callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-    //auto f = std::bind(framebuffer_size_callback2, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    glfwSetInputMode(m_window, GLFW_STICKY_KEYS, GL_TRUE);
     glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    glewExperimental = true; // Needed for core profile
+    if (glewInit() != GLEW_OK) {
         glfwTerminate();
-        throw("Failed to initialize GLAD");
+        THROW("Failed to initialize GLEW");
     }
     glfwSwapInterval(1);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    DLOG("Window created");
 }
 
 void Window::refresh() {
-
     currentWindow = this;
+    glfwMakeContextCurrent(m_window);
     glfwSwapBuffers(m_window);
     glfwPollEvents();
     processInput(m_window);
-    //glClearColor(0.10f, 0.1f, 0.13f, 1.0f);
+    glClearColor(0.10f, 0.1f, 0.13f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
 
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void Window::setTitle(const char *title) {
+    glfwSetWindowTitle(m_window, title);
 }
 
 float Window::getAspectRatio() {
     if (m_fullScreen)
-        return static_cast<float>(m_FullscreenWidth) / static_cast<float>(m_FullscreenHeight);
+        return static_cast<float>(primaryScreenWidth) / static_cast<float>(primaryScreenHeight);
     else
         return static_cast<float>(m_WindowedWidth) / static_cast<float>(m_WindowedHeight);
 }
 
-int Window::active() {
+bool Window::active() {
     return !glfwWindowShouldClose(m_window);
 }
 
 Window::~Window() {
     glfwDestroyWindow(m_window);
-    glfwTerminate();
+    DLOG("Window destroyed");
 }

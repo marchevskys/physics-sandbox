@@ -8,20 +8,23 @@
 #include <cstring>
 #include <iostream>
 
-#define _LOG_INFO_FILE << ", file: " << __FILE__
-#define _LOG_INFO_FUNCTION << "    " << __FUNCTION__
-#define _LOG_INFO_LINE << "  line: " << __LINE__
+#define LOG_INFO_FILE << ", file: " << __FILE__
+#define LOG_INFO_FUNCTION << "    " << __FUNCTION__
+#define LOG_INFO_LINE << "  line: " << __LINE__
 
 #define DLOG(...)           \
     std::cout << "LOG: ";   \
     std::cout, __VA_ARGS__; \
-    std::cout _LOG_INFO_FUNCTION _LOG_INFO_LINE _LOG_INFO_FILE << std::endl;
+    std::cout LOG_INFO_FUNCTION LOG_INFO_LINE LOG_INFO_FILE << std::endl;
 
 // Debug LOG with variable Name
 #define DLOGN(...)                              \
     std::cout << "LOGN: ";                      \
     show(std::cout, #__VA_ARGS__, __VA_ARGS__); \
-    std::cout _LOG_INFO_FUNCTION _LOG_INFO_LINE _LOG_INFO_FILE << std::endl;
+    std::cout LOG_INFO_FUNCTION LOG_INFO_LINE LOG_INFO_FILE << std::endl;
+
+#define THROW(msg) \
+    throw(std::runtime_error(std::string(msg) + "  " + std::string(__FILE__) + ", line: " + std::to_string(__LINE__)))
 
 template <typename T>
 std::ostream &operator,(std::ostream &out, const T &t) {
