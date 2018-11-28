@@ -56,6 +56,9 @@ class PhysBody {
 
   protected:
     class NewtonBody *m_body = nullptr;
+
+  private:
+    void turnOffDefaultResistance();
 };
 
 #endif // PHYSBODY_H

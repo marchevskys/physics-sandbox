@@ -54,12 +54,19 @@ void setForcesAndTorques(const NewtonBody *const body, double timestep, int thre
     NewtonBodyGetPosition(body, pos);
 }
 
+void PhysBody::turnOffDefaultResistance() {
+    NewtonBodySetLinearDamping(m_body, 0.0);
+    dFloat angularDamping = 0.0;
+    NewtonBodySetAngularDamping(m_body, &angularDamping);
+}
+
 PhysBody::PhysBody(const PhysWorld &world, CollisionShape &&shape, const double m, const double Ixx, const double Iyy, const double Izz) {
     DLOG("Body created");
     m_body = NewtonCreateDynamicBody(world.get(), shape.get(), Identity);
     NewtonBodySetMassMatrix(m_body, m, Ixx, Iyy, Izz);
     NewtonBodySetForceAndTorqueCallback(m_body, setForcesAndTorques);
     NewtonBodySetUserData(m_body, static_cast<void *>(&data));
+    turnOffDefaultResistance();
 }
 
 PhysBody::PhysBody(const PhysBody &other) {
