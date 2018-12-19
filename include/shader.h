@@ -9,6 +9,7 @@ class Shader {
     Shader(const char *vertex_file_path, const char *fragment_file_path);
     void use() const;
     void setMat4(int index, const double *const mat) const;
+    void setVec(int index, const double *const vec) const;
     void setMat4(int index, const float *const mat) const;
 
     ~Shader();

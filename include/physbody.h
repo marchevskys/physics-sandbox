@@ -44,6 +44,10 @@ class PhysBody {
     PhysBody(PhysBody &&other) noexcept;
 
     void setVelocity(const double *velocity);
+    void setForce(const double *force);
+    void setForce(const double x, const double y, const double z);
+    void setTorque(const double *torque);
+    void setTorque(const double x, const double y, const double z);
     void setOmega(const double *omega);
     void getMatrix(double *mat) const;
 
@@ -53,6 +57,8 @@ class PhysBody {
     } data;
 
     ~PhysBody();
+
+    static void setOrigin(double originX, double originY, double originZ);
 
   protected:
     class NewtonBody *m_body = nullptr;

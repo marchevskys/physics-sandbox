@@ -6,7 +6,7 @@
 #define pi3 1.0471975512
 //layout(origin_upper_left) in vec4 gl_FragCoord;
 
-layout (location = 3) uniform vec3 directLight;
+layout (location = 3) uniform vec3 cameraDir;
 
 out vec4 FragColor;
 uniform float time;
@@ -37,8 +37,8 @@ void main()
 
     float angle = atan(nn.y / nn.x) / (pi * 2) + 0.2;
     vec3 diffuse = vec3(1,0,0.2);
-
-    if(fract((lp.z)* 5.4) < 0.2)
+float k = 10;
+    if(sin(lp.x * k) + sin(lp.y * k) + sin(lp.z * k) < 0)
         diffuse = vec3(1,1,1);
    //FragColor  = mix(vec4(1), vec4(0.7), fract(gl_FragCoord.y * 0.05) > 0.5 != fract(gl_FragCoord.x * 0.05) > 0.5 ? 1 : 0);
     FragColor = vec4( diffuse * 0.3 + blick1, 1.0f);

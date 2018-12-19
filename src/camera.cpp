@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "shadermanager.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 glm::dmat4 Camera::getView() {
@@ -28,4 +29,9 @@ void Camera::move(glm::dvec3 deltaDir) {
 }
 
 void Camera::rotate(glm::dvec3 deltaPhi) {
+}
+
+void Camera::activateShaders() {
+    ShaderManager::get()->setViewMatricesForAllShaders(&getView()[0][0]);
+    ShaderManager::get()->setProjectionMatricesForAllShaders(&getProjection()[0][0]);
 }

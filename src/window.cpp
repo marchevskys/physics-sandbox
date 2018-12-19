@@ -1,4 +1,5 @@
 #include "window.h"
+#include "controller.h"
 #include "logger.h"
 
 //#include <glad/glad.h>
@@ -42,19 +43,20 @@ class WindowManager {
     }
 };
 
-void processInput(GLFWwindow *window) {
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
     auto flipScreenKey = glfwGetKey(window, GLFW_KEY_F);
     static bool sIsUp = true;
-    if (flipScreenKey == GLFW_PRESS && Window::currentWindow && sIsUp) {
+    if (flipScreenKey == GLFW_PRESS && sIsUp) {
         Window::currentWindow->toggleFullscreen();
         sIsUp = false;
     }
-    if (flipScreenKey == GLFW_RELEASE && Window::currentWindow) {
+    if (flipScreenKey == GLFW_RELEASE) {
         sIsUp = true;
     }
+    Controller::get()->processInput(window, key, scancode, action, mode);
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
@@ -136,7 +138,8 @@ void Window::refresh() {
     glfwMakeContextCurrent(m_window);
     glfwSwapBuffers(m_window);
     glfwPollEvents();
-    processInput(m_window);
+    //processInput(m_window);
+    glfwSetKeyCallback(m_window, key_callback);
     glClearColor(0.10f, 0.1f, 0.13f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

@@ -2,9 +2,11 @@
 #include "logger.h"
 
 #define _NEWTON_USE_DOUBLE
+#include <array>
 #include <newton/Newton.h>
 
 static const double Identity[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+double origin[3]{0, 0, 0};
 // PHYSICS WORLD
 PhysWorld::PhysWorld() {
     m_world = NewtonCreate();
@@ -61,12 +63,22 @@ void PhysBody::turnOffDefaultResistance() {
 }
 
 PhysBody::PhysBody(const PhysWorld &world, CollisionShape &&shape, const double m, const double Ixx, const double Iyy, const double Izz) {
-    DLOG("Body created");
-    m_body = NewtonCreateDynamicBody(world.get(), shape.get(), Identity);
+    //DLOG("Body created");
+    std::array<double, 16> mat;
+    for (int i = 0; i < 16; ++i)
+        mat[i] = Identity[i];
+
+    printf("\n");
+    for (int i = 0; i < 3; ++i) {
+        mat[12 + i] = origin[i];
+        printf("%f ", origin[i]);
+    }
+    m_body = NewtonCreateDynamicBody(world.get(), shape.get(), mat.data());
     NewtonBodySetMassMatrix(m_body, m, Ixx, Iyy, Izz);
     NewtonBodySetForceAndTorqueCallback(m_body, setForcesAndTorques);
     NewtonBodySetUserData(m_body, static_cast<void *>(&data));
     turnOffDefaultResistance();
+    double force[3]{100.0, 0.0, 0.0};
 }
 
 PhysBody::PhysBody(const PhysBody &other) {
@@ -79,6 +91,28 @@ PhysBody::PhysBody(PhysBody &&other) noexcept {
 }
 
 void PhysBody::setVelocity(const double *velocity) { NewtonBodySetVelocity(m_body, velocity); }
+
+void PhysBody::setForce(const double *force) {
+    for (int i = 0; i < 3; ++i)
+        data.force[0] = force[0];
+}
+
+void PhysBody::setForce(const double x, const double y, const double z) {
+    data.force[0] = x;
+    data.force[1] = y;
+    data.force[2] = z;
+}
+
+void PhysBody::setTorque(const double *torque) {
+    for (int i = 0; i < 3; ++i)
+        data.torque[0] = torque[0];
+}
+
+void PhysBody::setTorque(const double x, const double y, const double z) {
+    data.torque[0] = x;
+    data.torque[1] = y;
+    data.torque[2] = z;
+}
 void PhysBody::setOmega(const double *omega) { NewtonBodySetOmega(m_body, omega); }
 
 void PhysBody::getMatrix(double *mat) const { NewtonBodyGetMatrix(m_body, mat); }
@@ -86,6 +120,12 @@ void PhysBody::getMatrix(double *mat) const { NewtonBodyGetMatrix(m_body, mat); 
 PhysBody::~PhysBody() {
     if (m_body) {
         NewtonDestroyBody(m_body);
-        DLOG("Body destroyed");
+        //DLOG("Body destroyed");
     }
+}
+
+void PhysBody::setOrigin(double originX, double originY, double originZ) {
+    origin[0] = originX;
+    origin[1] = originY;
+    origin[2] = originZ;
 }

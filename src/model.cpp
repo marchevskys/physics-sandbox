@@ -3,25 +3,8 @@
 #include "mesh.h"
 #include "meshdata.h"
 #include "shader.h"
-
+#include "shadermanager.h"
 #include <vector>
-class ShaderManager {
-    std::vector<Shader> shaders;
-    ShaderManager() {
-        shaders.reserve(10);
-        shaders.emplace_back("../GameTest3/src/shaders/vertex.glsl", "../GameTest3/src/shaders/fragment.glsl");
-        DLOG("Shaders initialized");
-    }
-    ~ShaderManager() { DLOG("Shaders destroyed"); }
-
-  public:
-    static ShaderManager *get() {
-        static ShaderManager inst;
-        return &inst;
-    }
-    const Shader *flatShader() const { return &shaders[0]; }
-    const std::vector<Shader> &getAll3DShaders() { return shaders; }
-};
 
 Model::Model() {
 }
@@ -58,16 +41,4 @@ MeshManager::~MeshManager() {
 
 const Mesh *MeshManager::Sphere() {
     return &meshes[0];
-}
-
-void setViewMatricesForAllShaders(const double *mat) {
-    auto &shaders = ShaderManager::get()->getAll3DShaders();
-    for (const auto &s : shaders)
-        s.setMat4(1, mat);
-}
-
-void setProjectionMatricesForAllShaders(const float *mat) {
-    auto &shaders = ShaderManager::get()->getAll3DShaders();
-    for (const auto &s : shaders)
-        s.setMat4(2, mat);
 }

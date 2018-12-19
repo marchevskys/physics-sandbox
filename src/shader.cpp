@@ -103,6 +103,13 @@ void Shader::setMat4(int index, const double *const mat) const {
     glUniformMatrix4fv(index, 1, GL_FALSE, fMat);
 }
 
+void Shader::setVec(int index, const double *const vec) const {
+    float fVec[16];
+    for (int i = 0; i < 3; i++)
+        fVec[i] = static_cast<float>(vec[i]);
+    glUniform3fv(index, 1, fVec);
+}
+
 void Shader::setMat4(int index, const float *const mat) const {
     glUniformMatrix4fv(index, 1, GL_FALSE, mat);
 }
