@@ -11,7 +11,7 @@ double origin[3]{0, 0, 0};
 PhysWorld::PhysWorld() {
     m_world = NewtonCreate();
     NewtonSetThreadsCount(m_world, 4);
-    NewtonSetNumberOfSubsteps(m_world, 1);
+    NewtonSetNumberOfSubsteps(m_world, 10);
     DLOG("world created");
 }
 
@@ -52,8 +52,16 @@ void setForcesAndTorques(const NewtonBody *const body, double timestep, int thre
         force[i] += mydata->force[i];
     NewtonBodySetForce(body, force);
     NewtonBodySetTorque(body, mydata->torque);
-    double pos[4];
-    NewtonBodyGetPosition(body, pos);
+}
+
+void updateTransformCallback(const NewtonBody *const body, const dFloat *const matrix, int threadIndex) {
+    PhysBody::Data *mydata = static_cast<PhysBody::Data *>(NewtonBodyGetUserData(body));
+    mydata->torque[0] = 0.0;
+    mydata->torque[1] = 0.0;
+    mydata->torque[2] = 0.0;
+    mydata->force[0] = 0.0;
+    mydata->force[1] = 0.0;
+    mydata->force[2] = 0.0;
 }
 
 void PhysBody::turnOffDefaultResistance() {
@@ -76,6 +84,8 @@ PhysBody::PhysBody(const PhysWorld &world, CollisionShape &&shape, const double 
     m_body = NewtonCreateDynamicBody(world.get(), shape.get(), mat.data());
     NewtonBodySetMassMatrix(m_body, m, Ixx, Iyy, Izz);
     NewtonBodySetForceAndTorqueCallback(m_body, setForcesAndTorques);
+    NewtonBodySetTransformCallback(m_body, updateTransformCallback);
+    //NewtonWorldListenerSetPostUpdateCallback(world, )
     NewtonBodySetUserData(m_body, static_cast<void *>(&data));
     turnOffDefaultResistance();
     double force[3]{100.0, 0.0, 0.0};
@@ -92,28 +102,36 @@ PhysBody::PhysBody(PhysBody &&other) noexcept {
 
 void PhysBody::setVelocity(const double *velocity) { NewtonBodySetVelocity(m_body, velocity); }
 
-void PhysBody::setForce(const double *force) {
+void PhysBody::addForce(const double *force) {
     for (int i = 0; i < 3; ++i)
-        data.force[0] = force[0];
+        data.force[i] += force[i];
 }
 
-void PhysBody::setForce(const double x, const double y, const double z) {
-    data.force[0] = x;
-    data.force[1] = y;
-    data.force[2] = z;
+void PhysBody::addForce(const double x, const double y, const double z) {
+    data.force[0] += x;
+    data.force[1] += y;
+    data.force[2] += z;
 }
 
-void PhysBody::setTorque(const double *torque) {
+void PhysBody::addTorque(const double *torque) {
     for (int i = 0; i < 3; ++i)
-        data.torque[0] = torque[0];
+        data.torque[i] += torque[i];
 }
 
-void PhysBody::setTorque(const double x, const double y, const double z) {
-    data.torque[0] = x;
-    data.torque[1] = y;
-    data.torque[2] = z;
+void PhysBody::addTorque(const double x, const double y, const double z) {
+    data.torque[0] += x;
+    data.torque[1] += y;
+    data.torque[2] += z;
 }
 void PhysBody::setOmega(const double *omega) { NewtonBodySetOmega(m_body, omega); }
+
+void PhysBody::setMass(const double *mass) {
+    NewtonBodySetMassMatrix(m_body, mass[0], mass[1], mass[2], mass[3]);
+}
+
+void PhysBody::getPos(double *pos) {
+    NewtonBodyGetPosition(m_body, pos);
+}
 
 void PhysBody::getMatrix(double *mat) const { NewtonBodyGetMatrix(m_body, mat); }
 

@@ -2,7 +2,7 @@
 #include "window.h"
 
 #include "camera.h"
-#include "controller.h"
+#include "control.h"
 #include "logger.h"
 #include "mesh.h"
 #include "physbody.h"
@@ -59,10 +59,45 @@ struct RenderSystem : public ex::System<RenderSystem> {
 
 struct ControlSystem : public ex::System<ControlSystem> {
     void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
-        es.each<Controller, PhysBody>([dt](ex::Entity entity, Controller &control, PhysBody &body) {
+        auto attract = [&es](ex::Entity e1, glm::dvec3 &forceDir, double k) {
+            auto comp1 = e1.component<PhysBody>();
+            glm::dvec3 pos1;
+            comp1.get()->getPos(&pos1[0]);
 
+            es.each<PhysBody>([&](ex::Entity e2, PhysBody &body) {
+                auto comp2 = e2.component<PhysBody>();
+                if (comp1 != comp2) {
+                    glm::dvec3 pos2;
+                    comp2.get()->getPos(&pos2[0]);
+                    auto dist = glm::length(pos1 - pos2);
+                    glm::dvec3 force = k * 4000.0 * (pos1 - pos2) / (dist * dist * dist);
+                    forceDir -= force;
+                    comp2.get()->addForce(&force[0]);
+                }
+            });
+        };
+
+        es.each<Control, PhysBody>([dt, attract](ex::Entity entity, Control &control, PhysBody &body) {
+            glm::dvec3 forceDir(0, 0, 0);
+            if (Control::pressed(Control::Button::Up))
+                forceDir += glm::dvec3(0, -1, 0);
+            if (Control::pressed(Control::Button::Down))
+                forceDir += glm::dvec3(0, 1, 0);
+            if (Control::pressed(Control::Button::Left))
+                forceDir += glm::dvec3(1, 0, 0);
+            if (Control::pressed(Control::Button::Right))
+                forceDir += glm::dvec3(-1, 0, 0);
+            auto forceDirLength = glm::length(forceDir);
+            if (forceDirLength > 1.0)
+                forceDir /= forceDirLength;
+            forceDir *= 300000;
+            attract(entity, forceDir, Control::pressed(Control::Button::Space));
+            body.addForce(&forceDir[0]);
         });
     }
+};
+
+struct AttractSystem : public ex::System<AttractSystem> {
 };
 
 Game::Game() {
@@ -96,7 +131,7 @@ ex::Entity Game::addObject(ObjectType type) {
     } break;
     case ObjectType::Cube: {
         PhysBody::setOrigin(0.0, 0.0, -1.0);
-        ex.assign<PhysBody>(*m_physWorld, CollisionCuboid(*m_physWorld, 1000, 1000, 1.0), 0.0, 0.0, 0.0, 0.0);
+        ex.assign<PhysBody>(*m_physWorld, CollisionCuboid(*m_physWorld, 100000, 100000, 1.0), 0.0, 0.0, 0.0, 0.0);
     } break;
     }
     return ex;
@@ -114,24 +149,10 @@ void Game::attachControl(ex::Entity e) {
     auto bodyHandler = e.component<PhysBody>();
     if (bodyHandler) {
         const auto body = bodyHandler.get();
+        e.assign<Control>();
 
-        KeyCode upKey = Controller::get()->getKey("up");
-        KeyCode downKey = Controller::get()->getKey("down");
-        KeyCode leftKey = Controller::get()->getKey("left");
-        KeyCode rightKey = Controller::get()->getKey("right");
-        static double f = 20;
-
-        auto no = [&](PhysBody *body) { body->setTorque(0, 0, 0); };
-        auto up = [&](PhysBody *body) { body->setTorque(f, 0, 0); };
-        auto down = [&](PhysBody *body) { body->setTorque(-f, 0, 0); };
-        auto left = [&](PhysBody *body) { body->setTorque(0, f, 0); };
-        auto right = [&](PhysBody *body) { body->setTorque(0, -f, 0); };
-        e.assign<Controller>();
-        Controller::get()->attachKey(0, std::bind(no, body));
-        Controller::get()->attachKey(downKey, std::bind(down, body));
-        Controller::get()->attachKey(upKey, std::bind(up, body));
-        Controller::get()->attachKey(leftKey, std::bind(left, body));
-        Controller::get()->attachKey(rightKey, std::bind(right, body));
+        glm::dvec4 massMatrix(10000, 5000, 5000, 5000);
+        bodyHandler.get()->setMass(&massMatrix[0]);
     }
 }
 

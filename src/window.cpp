@@ -1,5 +1,5 @@
 #include "window.h"
-#include "controller.h"
+#include "control.h"
 #include "logger.h"
 
 //#include <glad/glad.h>
@@ -56,7 +56,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if (flipScreenKey == GLFW_RELEASE) {
         sIsUp = true;
     }
-    Controller::get()->processInput(window, key, scancode, action, mode);
+    Control::key_callback(window, key, scancode, action, mode);
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
@@ -140,6 +140,9 @@ void Window::refresh() {
     glfwPollEvents();
     //processInput(m_window);
     glfwSetKeyCallback(m_window, key_callback);
+    glfwSetCursorPosCallback(m_window, Control::mouse_callback); // mouse func
+    glfwSetScrollCallback(m_window, Control::scroll_callback);   // scroll func
+
     glClearColor(0.10f, 0.1f, 0.13f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

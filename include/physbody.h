@@ -44,11 +44,13 @@ class PhysBody {
     PhysBody(PhysBody &&other) noexcept;
 
     void setVelocity(const double *velocity);
-    void setForce(const double *force);
-    void setForce(const double x, const double y, const double z);
-    void setTorque(const double *torque);
-    void setTorque(const double x, const double y, const double z);
+    void addForce(const double *force);
+    void addForce(const double x, const double y, const double z);
+    void addTorque(const double *torque);
+    void addTorque(const double x, const double y, const double z);
     void setOmega(const double *omega);
+    void setMass(const double *mass);
+    void getPos(double *pos);
     void getMatrix(double *mat) const;
 
     struct Data {

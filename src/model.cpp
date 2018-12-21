@@ -31,7 +31,7 @@ Material::Material() : r(0.5), g(0.5), b(0.5) {
 MeshManager::MeshManager() {
     meshes.reserve(10);
     MeshData sphereModel;
-    sphereModel.addSphere(30);
+    sphereModel.addSphere(10);
     meshes.emplace_back(sphereModel);
 }
 

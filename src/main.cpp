@@ -2,7 +2,7 @@
 #include "window.h"
 
 #include "camera.h"
-#include "controller.h"
+#include "control.h"
 #include "logger.h"
 #include "mesh.h"
 #include "model.h"
@@ -15,6 +15,7 @@
 
 #include <chrono>
 #include <memory>
+#include <numeric>
 
 class Timer {
   public:
@@ -47,22 +48,30 @@ int main() {
 
         game.attachControl(e);
 
-        for (int i = 0; i < 13; ++i) {
+        for (int i = 0; i < 111; ++i) {
             auto pos = glm::sphericalRand<double>(10.0);
             PhysBody::setOrigin(pos[0], pos[1], 10.0 + pos[2]);
             game.addObject(Game::ObjectType::Sphere);
         }
 
         Camera cam(glm::dvec3(20.0, 2.0, 20.0), glm::dvec3(0.0, 0.0, 1.0));
-
+        cam.setFOV(1.4f);
         DLOG("MAIN LOOP");
+
+        std::vector<glm::dvec3> prevCamPositions(14, glm::dvec3(0));
         constexpr double dt = 1.0 / 60.0;
         while (window.active()) {
             game.update(dt);
             cam.setAspectRatio(window.getAspectRatio());
 
+            static int currentPos = 0;
             auto pos = game.getPos(e);
-            cam.set(glm::dvec3(2.0, 2.0, 2.0), glm::dvec3(0.0, 0.0, 0.0) + pos);
+            prevCamPositions[currentPos++ % prevCamPositions.size()] = pos;
+            glm::dvec3 init(0);
+            auto finalPos = std::accumulate(prevCamPositions.begin(), prevCamPositions.end(), init) / static_cast<double>(prevCamPositions.size());
+            static double distance = 1.0;
+            distance *= 1.0 + Control::scrollOffset() * 0.1;
+            cam.set(glm::dvec3(0.0, 4.0, 4.0) * distance + finalPos, glm::dvec3(0.0, 0.0, 0.0) + finalPos);
             game.render(cam);
 
             window.refresh();

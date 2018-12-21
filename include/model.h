@@ -35,8 +35,4 @@ class MeshManager {
     const Mesh *Sphere();
 };
 
-void setViewMatricesForAllShaders(const double *mat);
-void setProjectionMatricesForAllShaders(const float *mat);
-void setviewPos(const float *vec);
-
 #endif // MODEL_H
