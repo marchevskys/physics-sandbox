@@ -3,15 +3,17 @@
 
 #define _NEWTON_USE_DOUBLE
 #include <array>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <newton/Newton.h>
 
-static const double Identity[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+static const std::array<double, 16> Identity{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 double origin[3]{0, 0, 0};
 // PHYSICS WORLD
 PhysWorld::PhysWorld() {
     m_world = NewtonCreate();
     NewtonSetThreadsCount(m_world, 4);
-    NewtonSetNumberOfSubsteps(m_world, 10);
+    NewtonSetNumberOfSubsteps(m_world, 8);
     DLOG("world created");
 }
 
@@ -45,12 +47,14 @@ CollisionCuboid::CollisionCuboid(const PhysWorld &world, double w, double l, dou
 void setForcesAndTorques(const NewtonBody *const body, double timestep, int threadIndex) {
     double mass, Ixx, Iyy, Izz;
     NewtonBodyGetMass(body, &mass, &Ixx, &Iyy, &Izz);
-    double force[3] = {0, 0, -9.80665 * mass}; // G-force // gravity here
-
+    glm::dvec3 gravityForce{0, 0, -9.80665 * mass}; // G-force // gravity here
     PhysBody::Data *mydata = static_cast<PhysBody::Data *>(NewtonBodyGetUserData(body));
+    glm::dvec3 speed;
+    NewtonBodyGetVelocity(body, &speed[0]);
+    glm::dvec3 aeroForce = -0.05 * glm::length(speed) * speed;
     for (int i = 0; i < 3; i++)
-        force[i] += mydata->force[i];
-    NewtonBodySetForce(body, force);
+        mydata->force[i] += gravityForce[i] + aeroForce[i];
+    NewtonBodySetForce(body, mydata->force);
     NewtonBodySetTorque(body, mydata->torque);
 }
 
@@ -72,23 +76,18 @@ void PhysBody::turnOffDefaultResistance() {
 
 PhysBody::PhysBody(const PhysWorld &world, CollisionShape &&shape, const double m, const double Ixx, const double Iyy, const double Izz) {
     //DLOG("Body created");
-    std::array<double, 16> mat;
-    for (int i = 0; i < 16; ++i)
-        mat[i] = Identity[i];
+    std::array<double, 16> mat = Identity;
 
-    printf("\n");
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; ++i)
         mat[12 + i] = origin[i];
-        printf("%f ", origin[i]);
-    }
+
     m_body = NewtonCreateDynamicBody(world.get(), shape.get(), mat.data());
     NewtonBodySetMassMatrix(m_body, m, Ixx, Iyy, Izz);
     NewtonBodySetForceAndTorqueCallback(m_body, setForcesAndTorques);
     NewtonBodySetTransformCallback(m_body, updateTransformCallback);
-    //NewtonWorldListenerSetPostUpdateCallback(world, )
+    //NewtonBodySetContinuousCollisionMode(m_body, 1);
     NewtonBodySetUserData(m_body, static_cast<void *>(&data));
     turnOffDefaultResistance();
-    double force[3]{100.0, 0.0, 0.0};
 }
 
 PhysBody::PhysBody(const PhysBody &other) {
@@ -98,6 +97,14 @@ PhysBody::PhysBody(const PhysBody &other) {
 PhysBody::PhysBody(PhysBody &&other) noexcept {
     m_body = other.m_body;
     other.m_body = nullptr;
+    data = other.data;
+}
+
+void PhysBody::setPos(const double *pos) {
+    auto mat = Identity;
+    for (int i = 0; i < 3; ++i)
+        mat[12 + i] += pos[i];
+    NewtonBodySetMatrix(m_body, mat.data());
 }
 
 void PhysBody::setVelocity(const double *velocity) { NewtonBodySetVelocity(m_body, velocity); }

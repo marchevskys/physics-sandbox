@@ -7,7 +7,6 @@ class PhysWorld {
 
   public:
     PhysWorld();
-
     ~PhysWorld();
     inline const NewtonWorld *get() const { return m_world; }
     void update(const double dt);
@@ -43,6 +42,9 @@ class PhysBody {
     PhysBody(const PhysBody &other);
     PhysBody(PhysBody &&other) noexcept;
 
+    void setPos(const double *pos);
+    void getPos(double *pos);
+
     void setVelocity(const double *velocity);
     void addForce(const double *force);
     void addForce(const double x, const double y, const double z);
@@ -50,7 +52,6 @@ class PhysBody {
     void addTorque(const double x, const double y, const double z);
     void setOmega(const double *omega);
     void setMass(const double *mass);
-    void getPos(double *pos);
     void getMatrix(double *mat) const;
 
     struct Data {

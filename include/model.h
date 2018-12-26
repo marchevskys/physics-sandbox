@@ -22,17 +22,4 @@ class Model {
     void render(const double *transform);
 };
 
-class MeshManager {
-    std::vector<Mesh> meshes;
-    MeshManager();
-    ~MeshManager();
-
-  public:
-    static MeshManager *get() {
-        static MeshManager inst;
-        return &inst;
-    }
-    const Mesh *Sphere();
-};
-
 #endif // MODEL_H

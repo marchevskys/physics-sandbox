@@ -53,6 +53,7 @@ Shader::Shader(const char *vertex_file_path, const char *fragment_file_path) {
         std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
         glGetShaderInfoLog(VertexShaderID, InfoLogLength, nullptr, &VertexShaderErrorMessage[0]);
         printf("%s\n", &VertexShaderErrorMessage[0]);
+        THROW();
     }
 
     // Compile Fragment Shader
@@ -82,6 +83,7 @@ Shader::Shader(const char *vertex_file_path, const char *fragment_file_path) {
         std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
         glGetProgramInfoLog(m_program, InfoLogLength, nullptr, &ProgramErrorMessage[0]);
         printf("%s\n", &ProgramErrorMessage[0]);
+        THROW();
     }
 
     glDetachShader(m_program, VertexShaderID);

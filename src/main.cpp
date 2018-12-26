@@ -11,47 +11,27 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/random.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/string_cast.hpp>
 
 #include <chrono>
 #include <memory>
 #include <numeric>
 
-class Timer {
-  public:
-    typedef std::chrono::high_resolution_clock Clock;
-    Timer() { epoch = Clock::now(); }
-    double reset() {
-        auto diff = Clock::now() - epoch;
-        epoch = Clock::now();
-        return std::chrono::duration_cast<std::chrono::microseconds>(diff).count();
-    }
-    Clock::duration time_elapsed() const { return Clock::now() - epoch; }
-
-  private:
-    Clock::time_point epoch;
-};
-
 using namespace std;
 
 int main() {
     try {
-        Window window(800, 600, "Main window");
-
+        Window window(1024, 768, "Main window", false);
         Game game;
-        PhysBody::setOrigin(0.0, 0.0, 0.0);
-        game.addObject(Game::ObjectType::Cube);
 
-        PhysBody::setOrigin(0.0, 0.0, 1.0);
-        auto e = game.addObject(Game::ObjectType::Sphere);
-        //        auto b = e.component<PhysBody>().get();
-
+        game.addObject(Game::ObjectType::Cube, {0.0, 0.0, 0.0});
+        auto e = game.addObject(Game::ObjectType::Sphere, {0.0, 0.0, 1.0});
         game.attachControl(e);
 
         for (int i = 0; i < 111; ++i) {
-            auto pos = glm::sphericalRand<double>(10.0);
-            PhysBody::setOrigin(pos[0], pos[1], 10.0 + pos[2]);
-            game.addObject(Game::ObjectType::Sphere);
+            auto pos = glm::ballRand<double>(10.0) + glm::dvec3(0, 0, 10);
+            game.addObject(Game::ObjectType::Sphere, pos, true);
         }
 
         Camera cam(glm::dvec3(20.0, 2.0, 20.0), glm::dvec3(0.0, 0.0, 1.0));
@@ -60,6 +40,8 @@ int main() {
 
         std::vector<glm::dvec3> prevCamPositions(14, glm::dvec3(0));
         constexpr double dt = 1.0 / 60.0;
+
+        double xx = 0.0, yy = -0.5;
         while (window.active()) {
             game.update(dt);
             cam.setAspectRatio(window.getAspectRatio());
@@ -69,9 +51,18 @@ int main() {
             prevCamPositions[currentPos++ % prevCamPositions.size()] = pos;
             glm::dvec3 init(0);
             auto finalPos = std::accumulate(prevCamPositions.begin(), prevCamPositions.end(), init) / static_cast<double>(prevCamPositions.size());
-            static double distance = 1.0;
+            static double distance = 13.0;
+
+            glm::dvec3 vec = {1, 0, 0};
+            xx += Control::mousePos().x * 0.01;
+            yy += Control::mousePos().y * 0.01;
+            yy = yy > 0.0 ? 0.0 : yy;
+            yy = yy < -1.5 ? -1.5 : yy;
+            vec = glm::rotate(vec, yy, glm::dvec3(0, 1, 0));
+            vec = glm::rotate(vec, xx, glm::dvec3(0, 0, 1));
+
             distance *= 1.0 + Control::scrollOffset() * 0.1;
-            cam.set(glm::dvec3(0.0, 4.0, 4.0) * distance + finalPos, glm::dvec3(0.0, 0.0, 0.0) + finalPos);
+            cam.set(vec * distance + finalPos, glm::dvec3(0.0, 0.0, 0.0) + finalPos);
             game.render(cam);
 
             window.refresh();

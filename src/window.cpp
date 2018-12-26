@@ -47,15 +47,15 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    auto flipScreenKey = glfwGetKey(window, GLFW_KEY_F);
     static bool sIsUp = true;
-    if (flipScreenKey == GLFW_PRESS && sIsUp) {
+    if (key == GLFW_KEY_F && action == GLFW_PRESS && sIsUp) {
         Window::currentWindow->toggleFullscreen();
         sIsUp = false;
     }
-    if (flipScreenKey == GLFW_RELEASE) {
+
+    else if (action == GLFW_RELEASE)
         sIsUp = true;
-    }
+
     Control::key_callback(window, key, scancode, action, mode);
 }
 
@@ -76,19 +76,31 @@ void Window::resize(int width, int height) {
     }
 }
 
+// clang-format off
+#define CAPTURED_CURSOR
+#ifdef CAPTURED_CURSOR
+#define CURSOR_WINDOW_MODE      GLFW_CURSOR_DISABLED
+#define CURSOR_FULL_SCREEN_MODE GLFW_CURSOR_DISABLED
+#else
+#define CURSOR_WINDOW_MODE      GLFW_CURSOR_NORMAL
+#define CURSOR_FULL_SCREEN_MODE GLFW_CURSOR_HIDDEN
+#endif
+// clang-format on
+
 void Window::toggleFullscreen() {
     if (m_fullScreen) {
         glfwSetWindowMonitor(m_window, nullptr, m_xPos, m_yPos, m_WindowedWidth, m_WindowedHeight, 1);
-        glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetInputMode(m_window, GLFW_CURSOR, CURSOR_WINDOW_MODE);
         m_fullScreen = false;
         DLOGN(m_WindowedWidth, m_WindowedHeight);
     } else {
         glfwGetWindowPos(m_window, &m_xPos, &m_yPos);
         glfwSetWindowMonitor(m_window, glfwGetPrimaryMonitor(), 0, 0, primaryScreenWidth, primaryScreenHeight, 1);
-        glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        glfwSetInputMode(m_window, GLFW_CURSOR, CURSOR_FULL_SCREEN_MODE);
         m_fullScreen = true;
         DLOGN(primaryScreenWidth, primaryScreenHeight);
     }
+    DLOGN(m_fullScreen);
 }
 
 Window::Window(int width, int height, const char *_name, bool _fullScreen) : m_WindowedWidth(width), m_WindowedHeight(height), m_fullScreen(_fullScreen) {
@@ -103,11 +115,11 @@ Window::Window(int width, int height, const char *_name, bool _fullScreen) : m_W
 
     if (_fullScreen) {
         m_window = glfwCreateWindow(primaryScreenWidth, primaryScreenHeight, _name, glfwGetPrimaryMonitor(), nullptr);
-        glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        glfwSetInputMode(m_window, GLFW_CURSOR, CURSOR_FULL_SCREEN_MODE);
     } else {
         m_window = glfwCreateWindow(m_WindowedWidth, m_WindowedHeight, _name, nullptr, nullptr);
         glfwSetWindowPos(m_window, m_xPos, m_yPos);
-        glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetInputMode(m_window, GLFW_CURSOR, CURSOR_WINDOW_MODE);
     }
     if (m_window == nullptr) {
         glfwTerminate();
@@ -135,10 +147,10 @@ Window::Window(int width, int height, const char *_name, bool _fullScreen) : m_W
 
 void Window::refresh() {
     currentWindow = this;
+    Control::resetMouse();
     glfwMakeContextCurrent(m_window);
     glfwSwapBuffers(m_window);
     glfwPollEvents();
-    //processInput(m_window);
     glfwSetKeyCallback(m_window, key_callback);
     glfwSetCursorPosCallback(m_window, Control::mouse_callback); // mouse func
     glfwSetScrollCallback(m_window, Control::scroll_callback);   // scroll func
@@ -163,6 +175,7 @@ bool Window::active() {
 }
 
 Window::~Window() {
+    Control::reset();
     glfwDestroyWindow(m_window);
     DLOG("Window destroyed");
 }

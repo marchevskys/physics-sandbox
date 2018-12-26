@@ -27,18 +27,3 @@ void Model::render(const double *transform) {
 Material::Material() : r(0.5), g(0.5), b(0.5) {
     m_shader = ShaderManager::get()->flatShader();
 }
-
-MeshManager::MeshManager() {
-    meshes.reserve(10);
-    MeshData sphereModel;
-    sphereModel.addSphere(10);
-    meshes.emplace_back(sphereModel);
-}
-
-MeshManager::~MeshManager() {
-    //DLOG("Meshes destroyed");
-}
-
-const Mesh *MeshManager::Sphere() {
-    return &meshes[0];
-}

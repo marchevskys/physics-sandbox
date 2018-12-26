@@ -17,7 +17,7 @@ class Camera {
     void setAspectRatio(float ar);
     void move(glm::dvec3 deltaDir);
     void rotate(glm::dvec3 deltaPhi);
-    void activateShaders();
+    void updateShaders();
 
     glm::dmat4 getView();
     const glm::mat4 &getProjection() { return m_projection; }

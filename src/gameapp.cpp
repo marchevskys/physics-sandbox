@@ -7,6 +7,7 @@
 #include "mesh.h"
 #include "physbody.h"
 
+#include "meshmanager.h"
 #include "model.h"
 #include "transform.h"
 
@@ -27,8 +28,8 @@ struct ComponentEventReceiver : public ex::Receiver<ComponentEventReceiver> {
         Model *model = e.component<Model>().get();
         if (!e.has_component<Transform>())
             THROW("You can't add model to entity without transform");
-        if (!model->m_material) {
-        }
+        //if (!model->m_material) {
+        //}
     }
 
     void receive(const ex::ComponentRemovedEvent<Transform> &event) { // If delete transform - delete model and PhysBody
@@ -62,6 +63,7 @@ struct ControlSystem : public ex::System<ControlSystem> {
         auto attract = [&es](ex::Entity e1, glm::dvec3 &forceDir, double k) {
             auto comp1 = e1.component<PhysBody>();
             glm::dvec3 pos1;
+            glm::dvec3 e1force(0);
             comp1.get()->getPos(&pos1[0]);
 
             es.each<PhysBody>([&](ex::Entity e2, PhysBody &body) {
@@ -70,7 +72,7 @@ struct ControlSystem : public ex::System<ControlSystem> {
                     glm::dvec3 pos2;
                     comp2.get()->getPos(&pos2[0]);
                     auto dist = glm::length(pos1 - pos2);
-                    glm::dvec3 force = k * 4000.0 * (pos1 - pos2) / (dist * dist * dist);
+                    glm::dvec3 force = k * (pos1 - pos2) / (dist * dist * dist);
                     forceDir -= force;
                     comp2.get()->addForce(&force[0]);
                 }
@@ -90,14 +92,18 @@ struct ControlSystem : public ex::System<ControlSystem> {
             auto forceDirLength = glm::length(forceDir);
             if (forceDirLength > 1.0)
                 forceDir /= forceDirLength;
-            forceDir *= 300000;
-            attract(entity, forceDir, Control::pressed(Control::Button::Space));
+            forceDir *= 500000;
+            if (Control::pressed(Control::Button::Space))
+                attract(entity, forceDir, 18000);
+            static int exploded = 100;
+            exploded++;
+            if (Control::pressed(Control::Button::Enter) && exploded > 100) {
+                attract(entity, forceDir, -400000);
+                exploded = 0;
+            }
             body.addForce(&forceDir[0]);
         });
     }
-};
-
-struct AttractSystem : public ex::System<AttractSystem> {
 };
 
 Game::Game() {
@@ -106,8 +112,9 @@ Game::Game() {
     systems.add<ControlSystem>();
     systems.configure();
     m_meshSphere = MeshManager::get()->Sphere();
-    m_material = new Material();
     m_physWorld = new PhysWorld();
+    m_material.reset(new Material);
+    m_materialWhite.reset(new Material);
 }
 
 void Game::update(double dt) {
@@ -117,23 +124,30 @@ void Game::update(double dt) {
 }
 
 void Game::render(Camera &cam) {
-    cam.activateShaders();
+    cam.updateShaders();
     systems.update<RenderSystem>(0.0);
 }
 
-ex::Entity Game::addObject(ObjectType type) {
+ex::Entity Game::addObject(ObjectType type, const glm::dvec3 &pos, bool collision) {
     auto ex = entities.create();
+
     ex.assign<Transform>();
+    ex.component<Transform>()->setPos(pos);
     switch (type) {
     case ObjectType::Sphere: {
-        ex.assign<Model>(m_meshSphere, m_material);
-        ex.assign<PhysBody>(*m_physWorld, CollisionSphere(*m_physWorld, 1.0), 1.0, 0.1, 0.1, 0.1);
+        ex.assign<Model>(m_meshSphere, m_material.get());
+        if (collision)
+            ex.assign<PhysBody>(*m_physWorld, CollisionSphere(*m_physWorld, 1.0), 1.0, 0.1, 0.1, 0.1);
     } break;
     case ObjectType::Cube: {
         PhysBody::setOrigin(0.0, 0.0, -1.0);
         ex.assign<PhysBody>(*m_physWorld, CollisionCuboid(*m_physWorld, 100000, 100000, 1.0), 0.0, 0.0, 0.0, 0.0);
     } break;
     }
+    if (auto pbHandle = ex.component<PhysBody>())
+        pbHandle->setPos(&pos[0]);
+    if (auto tHandle = ex.component<Transform>())
+        tHandle->setPos(pos);
     return ex;
 }
 
@@ -148,11 +162,15 @@ void Game::attachControl(ex::Entity e) {
 
     auto bodyHandler = e.component<PhysBody>();
     if (bodyHandler) {
-        const auto body = bodyHandler.get();
+
         e.assign<Control>();
 
         glm::dvec4 massMatrix(10000, 5000, 5000, 5000);
         bodyHandler.get()->setMass(&massMatrix[0]);
+    }
+    auto modelHandler = e.component<Model>();
+    if (modelHandler) {
+        const auto model = modelHandler.get();
     }
 }
 
@@ -170,5 +188,4 @@ void Game::destroyAllPhysComponents() {
 Game::~Game() {
     destroyAllPhysComponents(); // destroy all phys bodies before world destruction
     delete m_physWorld;
-    delete m_material;
 }

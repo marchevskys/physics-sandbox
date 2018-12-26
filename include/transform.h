@@ -9,6 +9,8 @@ class Transform {
   public:
     Transform();
     Transform(glm::dvec3 pos);
+    void setPos(glm::dvec3 pos);
+    void offsetPos(glm::dvec3 pos);
     glm::dmat4 &get() { return m_transform; }
     glm::dvec3 getPos() { return m_transform[3]; };
     //double* get(){ return glm::value_ptr(m_transform); }

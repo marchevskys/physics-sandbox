@@ -6,8 +6,10 @@
 #include <glm/glm.hpp>
 
 bool Control::keys[1024]{0};
-double Control::scrollOffsetValue = 0.0;
-Coordinates Control::mouse{0.0, 0.0};
+double Control::scroll = 0.0;
+Coordinates Control::m_currentMousePos{0.0, 0.0};
+static Coordinates m_prevMousePos{0.0, 0.0};
+static Coordinates diff{0, 0};
 
 void Control::key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
     if (key > 10 && key < 300) {
@@ -18,23 +20,23 @@ void Control::key_callback(GLFWwindow *window, int key, int scancode, int action
     }
 }
 
-void Control::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-    mouse.x = xpos;
-    mouse.x = ypos;
+void Control::mouse_callback(GLFWwindow *window, double x, double y) {
+    diff = m_prevMousePos - Coordinates(x, y);
+    m_prevMousePos = {x, y};
 }
 
 void Control::scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    scrollOffsetValue = yoffset;
+    scroll += yoffset;
 }
 
 double Control::scrollOffset() {
-    double value = scrollOffsetValue;
-    scrollOffsetValue = 0;
+    double value = scroll;
+    scroll = 0;
     return value;
 }
 
 Coordinates Control::mousePos() {
-    return mouse;
+    return diff;
 }
 
 bool Control::pressed(Control::Button button) {
@@ -78,4 +80,20 @@ bool Control::pressed(Control::Button button) {
     default:
         return false;
     }
+}
+
+void Control::resetMouse() {
+    m_currentMousePos = {0.0, 0.0};
+    scroll = 0.0;
+    diff = {0, 0};
+}
+
+void Control::resetKeyboard() {
+    for (auto &k : keys)
+        k = false;
+}
+
+void Control::reset() {
+    Control::resetKeyboard();
+    Control::resetMouse();
 }

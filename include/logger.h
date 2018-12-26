@@ -2,8 +2,9 @@
 #define LOGGER_H
 
 #ifdef NDEBUG
-#define LOG(...)
-#define LOGN(...)
+#define DLOG(...)
+#define DLOGN(...)
+#define THROW(...)
 #else
 #include <cstring>
 #include <iostream>
