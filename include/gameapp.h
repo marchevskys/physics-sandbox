@@ -15,13 +15,10 @@ class GLFWwindow;
 class Game : public ex::EntityX {
 
   public:
-    enum class ObjectType {
-        Sphere,
-        Cube,
-        Icosahedron
-    };
+    ;
     explicit Game();
-    ex::Entity addObject(ObjectType type, const glm::dvec3 &position, bool collision = true);
+    ex::Entity addSphere(const glm::dvec3 &position, bool collision = true);
+    ex::Entity addCube(const glm::dvec3 &position, bool collision = true);
     void addModelToEntity(ex::Entity e);
     glm::dvec3 getPos(ex::Entity e);
 
@@ -31,13 +28,12 @@ class Game : public ex::EntityX {
     void attachControl(ex::Entity e);
     void destroyAllPhysComponents();
     ~Game();
+    const PhysWorld &getPhysWorld() { return *m_physWorld; }
 
   private:
     PhysWorld *m_physWorld;
-    const Mesh *m_meshSphere;
+    std::unique_ptr<Mesh> m_meshSphere;
     std::unique_ptr<Material> m_material;
-    std::unique_ptr<Material> m_materialWhite;
-    ;
 };
 
 #endif // GAMEAPP_H

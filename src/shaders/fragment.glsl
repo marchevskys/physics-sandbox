@@ -27,7 +27,7 @@ vec3 ls[2] = {
 void main()
 {
     vec3 nn = normalize(n);
-    //nn = normalize(cross(dFdx(wp.xyz), dFdy(wp.xyz)));
+    nn = normalize(cross(dFdx(wp.xyz), dFdy(wp.xyz)));
    // float le = length(lp.xyz);
    // vec3 nn2 = nn - 0.5* wp.xyz;
    //nn = le > 0.83f ? nn : nn2;

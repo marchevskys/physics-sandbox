@@ -7,12 +7,13 @@
 #include "mesh.h"
 #include "physbody.h"
 
-#include "meshmanager.h"
+#include "meshdata.h"
 #include "model.h"
 #include "transform.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <functional>
+#include <glm/gtc/random.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <tuple>
 
@@ -73,8 +74,13 @@ struct ControlSystem : public ex::System<ControlSystem> {
                     comp2.get()->getPos(&pos2[0]);
                     auto dist = glm::length(pos1 - pos2);
                     glm::dvec3 force = k * (pos1 - pos2) / (dist * dist * dist);
-                    forceDir -= force;
-                    comp2.get()->addForce(&force[0]);
+                    /*if (dist > 1.0)*/ {
+                        //glm::dvec3 randDir = glm::sphericalRand(1000.0);
+                        forceDir -= force;
+
+                        comp2.get()->addForce(&force[0]);
+                        //comp2.get()->addTorque(&randDir[0]);
+                    }
                 }
             });
         };
@@ -111,10 +117,12 @@ Game::Game() {
     systems.add<RenderSystem>();
     systems.add<ControlSystem>();
     systems.configure();
-    m_meshSphere = MeshManager::get()->Sphere();
+
+    //MeshData data;
+    //data.addIcosahedron();
+
+    m_meshSphere.reset(new Mesh(MeshPrimitives::icosahedron()));
     m_physWorld = new PhysWorld();
-    m_material.reset(new Material);
-    m_materialWhite.reset(new Material);
 }
 
 void Game::update(double dt) {
@@ -128,26 +136,26 @@ void Game::render(Camera &cam) {
     systems.update<RenderSystem>(0.0);
 }
 
-ex::Entity Game::addObject(ObjectType type, const glm::dvec3 &pos, bool collision) {
-    auto ex = entities.create();
-
+ex::Entity Game::addSphere(const glm::dvec3 &pos, bool collision) {
+    ex::Entity ex = entities.create();
     ex.assign<Transform>();
     ex.component<Transform>()->setPos(pos);
-    switch (type) {
-    case ObjectType::Sphere: {
-        ex.assign<Model>(m_meshSphere, m_material.get());
-        if (collision)
-            ex.assign<PhysBody>(*m_physWorld, CollisionSphere(*m_physWorld, 1.0), 1.0, 0.1, 0.1, 0.1);
-    } break;
-    case ObjectType::Cube: {
-        PhysBody::setOrigin(0.0, 0.0, -1.0);
-        ex.assign<PhysBody>(*m_physWorld, CollisionCuboid(*m_physWorld, 100000, 100000, 1.0), 0.0, 0.0, 0.0, 0.0);
-    } break;
+    ex.assign<Model>(m_meshSphere.get());
+    if (collision) {
+        //ex.assign<PhysBody>(*m_physWorld, CollisionSphere(*m_physWorld, 1.0), 1.0, 0.1, 0.1, 0.1);
+        ex.assign<PhysBody>(*m_physWorld, CollisionIcosahedron(*m_physWorld, 1.0), 1.0, 0.6, 0.6, 0.6);
+        ex.component<PhysBody>()->setPos(&pos[0]);
     }
-    if (auto pbHandle = ex.component<PhysBody>())
-        pbHandle->setPos(&pos[0]);
-    if (auto tHandle = ex.component<Transform>())
-        tHandle->setPos(pos);
+    return ex;
+}
+
+entityx::Entity Game::addCube(const glm::dvec3 &pos, bool collision) {
+    ex::Entity ex = entities.create();
+    ex.assign<Transform>();
+    ex.component<Transform>()->setPos(pos);
+    //ex.assign<Model>(m_meshSphere.get());
+    PhysBody::setOrigin(0.0, 0.0, -1.0);
+    ex.assign<PhysBody>(*m_physWorld, CollisionCuboid(*m_physWorld, 100000, 100000, 1.0), 0.0, 0.0, 0.0, 0.0);
     return ex;
 }
 
@@ -159,14 +167,13 @@ void Game::addModelToEntity(ex::Entity e) {
 }
 
 void Game::attachControl(ex::Entity e) {
-
     auto bodyHandler = e.component<PhysBody>();
     if (bodyHandler) {
 
         e.assign<Control>();
 
         glm::dvec4 massMatrix(10000, 5000, 5000, 5000);
-        bodyHandler.get()->setMass(&massMatrix[0]);
+        bodyHandler.get()->setMassMatrix(&massMatrix[0]);
     }
     auto modelHandler = e.component<Model>();
     if (modelHandler) {

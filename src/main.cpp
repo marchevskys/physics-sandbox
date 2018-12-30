@@ -3,6 +3,7 @@
 
 #include "camera.h"
 #include "control.h"
+#include "gameobjectfactory.h"
 #include "logger.h"
 #include "mesh.h"
 #include "model.h"
@@ -24,14 +25,16 @@ int main() {
     try {
         Window window(1024, 768, "Main window", false);
         Game game;
+        GameObjectFactory factory(game, game.getPhysWorld());
 
-        game.addObject(Game::ObjectType::Cube, {0.0, 0.0, 0.0});
-        auto e = game.addObject(Game::ObjectType::Sphere, {0.0, 0.0, 1.0});
+        game.addCube({0.0, 0.0, 0.0});
+        auto e = game.addSphere({0.0, 0.0, 1.0});
+        //auto e = factory.createSphere(1.0, {0.0, 0.0, 1.0});
         game.attachControl(e);
 
         for (int i = 0; i < 111; ++i) {
             auto pos = glm::ballRand<double>(10.0) + glm::dvec3(0, 0, 10);
-            game.addObject(Game::ObjectType::Sphere, pos, true);
+            game.addSphere(pos, true);
         }
 
         Camera cam(glm::dvec3(20.0, 2.0, 20.0), glm::dvec3(0.0, 0.0, 1.0));
@@ -41,7 +44,7 @@ int main() {
         std::vector<glm::dvec3> prevCamPositions(14, glm::dvec3(0));
         constexpr double dt = 1.0 / 60.0;
 
-        double xx = 0.0, yy = -0.5;
+        double xx = M_PI_2 - 0.01, yy = -0.5;
         while (window.active()) {
             game.update(dt);
             cam.setAspectRatio(window.getAspectRatio());
@@ -57,7 +60,7 @@ int main() {
             xx += Control::mousePos().x * 0.01;
             yy += Control::mousePos().y * 0.01;
             yy = yy > 0.0 ? 0.0 : yy;
-            yy = yy < -1.5 ? -1.5 : yy;
+            yy = yy < -M_PI_2 ? -M_PI_2 + 0.001 : yy;
             vec = glm::rotate(vec, yy, glm::dvec3(0, 1, 0));
             vec = glm::rotate(vec, xx, glm::dvec3(0, 0, 1));
 

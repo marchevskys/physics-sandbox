@@ -23,8 +23,8 @@ void main()
 
     lp = vec4(position, 1.0f);
     wp = model * lp;
-    //n = mat3(model) * normal;
-    n = mat3(model) * position;
+    n = mat3(model) * normal;
+    //n = mat3(model) * position;
     tc = texCoord;
     gl_Position  =  projection * view * wp ;
 

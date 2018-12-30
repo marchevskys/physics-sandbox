@@ -10,7 +10,7 @@ Mesh::Mesh(const MeshData &data) {
     setMeshData(data);
 }
 
-Mesh::Mesh(MeshData &&data) noexcept {
+Mesh::Mesh(MeshData &&data) {
     MeshData mdata(std::move(data));
     setMeshData(mdata);
 }

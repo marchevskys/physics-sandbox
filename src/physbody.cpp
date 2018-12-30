@@ -1,5 +1,6 @@
 #include "physbody.h"
 #include "logger.h"
+#include "meshdata.h"
 
 #define _NEWTON_USE_DOUBLE
 #include <array>
@@ -12,27 +13,31 @@ double origin[3]{0, 0, 0};
 // PHYSICS WORLD
 PhysWorld::PhysWorld() {
     m_world = NewtonCreate();
+    //DLOG(NewtonGetMaxThreadsCount(m_world));
+    //THROW();
     NewtonSetThreadsCount(m_world, 4);
     NewtonSetNumberOfSubsteps(m_world, 8);
     DLOG("world created");
 }
 
 PhysWorld::~PhysWorld() {
+    NewtonWaitForUpdateToFinish(m_world);
     NewtonDestroyAllBodies(m_world);
     NewtonDestroy(m_world);
     DLOG("world destroyed");
 }
-void PhysWorld::update(const double dt) { NewtonUpdate(m_world, dt); }
 
-// COLLISIONS
-CollisionShape::CollisionShape(const PhysWorld &world) {
-    DLOG("collision created");
-    m_collision = NewtonCreateNull(world.get());
+void PhysWorld::update(const double dt) {
+    //NewtonUpdate(m_world, dt);
+    NewtonUpdateAsync(m_world, dt);
 }
 
+// COLLISIONS
+CollisionShape::CollisionShape(const PhysWorld &world) {}
+
 CollisionShape::~CollisionShape() {
-    DLOG("collision destoyed");
-    NewtonDestroyCollision(m_collision);
+    if (m_collision)
+        NewtonDestroyCollision(m_collision);
 }
 
 CollisionSphere::CollisionSphere(const PhysWorld &world, double radius) : CollisionShape(world) {
@@ -41,6 +46,16 @@ CollisionSphere::CollisionSphere(const PhysWorld &world, double radius) : Collis
 
 CollisionCuboid::CollisionCuboid(const PhysWorld &world, double w, double l, double h) : CollisionShape(world) {
     m_collision = NewtonCreateBox(world.get(), w, l, h, 0, nullptr);
+}
+
+CollisionIcosahedron::CollisionIcosahedron(const PhysWorld &world, double radius) : CollisionShape(world) {
+
+    const auto vertices = MeshPrimitives::icosahedron().getVertices<double>();
+    m_collision = NewtonCreateConvexHull(world.get(), vertices.size() / 3, vertices.data(), sizeof(double) * 3, /*tolerance*/ 0.0, 0, nullptr);
+}
+
+CollisionConvex::CollisionConvex(const PhysWorld &world, const std::vector<double> points) : CollisionShape(world) {
+    m_collision = NewtonCreateConvexHull(world.get(), points.size() / 3, points.data(), sizeof(double) * 3, /*tolerance*/ 0.0, 0, nullptr);
 }
 
 // PHYSICS BODY
@@ -70,14 +85,13 @@ void updateTransformCallback(const NewtonBody *const body, const dFloat *const m
 
 void PhysBody::turnOffDefaultResistance() {
     NewtonBodySetLinearDamping(m_body, 0.0);
-    dFloat angularDamping = 0.0;
+    double angularDamping = 0.0;
     NewtonBodySetAngularDamping(m_body, &angularDamping);
 }
 
 PhysBody::PhysBody(const PhysWorld &world, CollisionShape &&shape, const double m, const double Ixx, const double Iyy, const double Izz) {
     //DLOG("Body created");
     std::array<double, 16> mat = Identity;
-
     for (int i = 0; i < 3; ++i)
         mat[12 + i] = origin[i];
 
@@ -90,9 +104,9 @@ PhysBody::PhysBody(const PhysWorld &world, CollisionShape &&shape, const double 
     turnOffDefaultResistance();
 }
 
-PhysBody::PhysBody(const PhysBody &other) {
-    THROW("TRYING TO COPY PHYSBODY");
-}
+PhysBody::PhysBody(const PhysBody &other) { THROW("TRY TO COPY PHYSBODY"); }
+
+void PhysBody::setMassMatrix(const double *mass) { NewtonBodySetMassMatrix(m_body, mass[0], mass[1], mass[2], mass[3]); }
 
 PhysBody::PhysBody(PhysBody &&other) noexcept {
     m_body = other.m_body;
@@ -130,15 +144,10 @@ void PhysBody::addTorque(const double x, const double y, const double z) {
     data.torque[1] += y;
     data.torque[2] += z;
 }
+
 void PhysBody::setOmega(const double *omega) { NewtonBodySetOmega(m_body, omega); }
 
-void PhysBody::setMass(const double *mass) {
-    NewtonBodySetMassMatrix(m_body, mass[0], mass[1], mass[2], mass[3]);
-}
-
-void PhysBody::getPos(double *pos) {
-    NewtonBodyGetPosition(m_body, pos);
-}
+void PhysBody::getPos(double *pos) { NewtonBodyGetPosition(m_body, pos); }
 
 void PhysBody::getMatrix(double *mat) const { NewtonBodyGetMatrix(m_body, mat); }
 

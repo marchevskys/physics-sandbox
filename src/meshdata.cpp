@@ -55,47 +55,62 @@ std::vector<float> MeshData::makeSingleArray(const std::vector<float> &positions
     return array;
 }
 
-void MeshData::addCube(float scale_x, float scale_y, float scale_z, MeshData::Type type) {
-
-    std::vector<float> positions{
-        -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f,
-        -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
-        -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f,
-        -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f};
-
-    std::vector<float> normals{
-        0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
-        0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
-
-    std::vector<float> texcoords = {
-        0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-
-    for (size_t i = 0; i < positions.size(); i += 3) {
-        positions[i] *= scale_x;
-        positions[i + 1] *= scale_y;
-        positions[i + 2] *= scale_z;
-    }
-
-    //result.m_vertexArray = makeSingleArray(positions, normals, texcoords, type);
-    m_vertices = std::move(positions);
-    m_indices.resize(36);
-    m_type = type;
-    for (uint i = 0; i < 36; i++)
-        m_indices[i] = i;
+MeshData::MeshData(MeshData &&other) {
+    m_indices = std::move(other.m_indices);
+    m_vertices = std::move(other.m_vertices);
+    m_normals = std::move(other.m_normals);
+    m_uvs = std::move(other.m_uvs);
+    m_type = other.m_type;
 }
 
-void MeshData::addSphere(uint resolution, MeshData::Type type) {
+MeshData::MeshData(const MeshData &other) {
+    THROW("copied");
+}
+
+void MeshData::scale(float k) {
+    for (auto &v : m_vertices)
+        v *= k;
+}
+
+template <>
+const std::vector<float> MeshData::getVertices() { return m_vertices; }
+
+template <>
+const std::vector<double> MeshData::getVertices() {
+    std::vector<double> vec(m_vertices.size());
+    for (size_t i = 0; i < vec.size(); ++i) {
+        vec[i] = static_cast<double>(m_vertices[i]);
+    }
+    return vec;
+}
+
+MeshData MeshPrimitives::icosahedron(MeshData::Type type) {
+    MeshData data;
+    std::vector<uint> indices{
+        2, 1, 0, 3, 2, 0, 4, 3, 0, 5, 4, 0, 1, 5, 0, 11, 6, 7, 11, 7,
+        8, 11, 8, 9, 11, 9, 10, 11, 10, 6, 1, 2, 6, 2, 3, 7, 3, 4, 8, 4,
+        5, 9, 5, 1, 10, 2, 7, 6, 3, 8, 7, 4, 9, 8, 5, 10, 9, 1, 6, 10};
+
+    std::vector<float> positions{
+        0.000f, 0.000f, 1.000f,
+        0.894f, 0.000f, 0.447f,
+        0.276f, 0.851f, 0.447f,
+        -0.724f, 0.526f, 0.447f,
+        -0.724f, -0.526f, 0.447f,
+        0.276f, -0.851f, 0.447f,
+        0.724f, 0.526f, -0.447f,
+        -0.276f, 0.851f, -0.447f,
+        -0.894f, 0.000f, -0.447f,
+        -0.276f, -0.851f, -0.447f,
+        0.724f, -0.526f, -0.447f,
+        0.000f, 0.000f, -1.000f};
+
+    data.m_vertices = std::move(positions);
+    data.m_indices = std::move(indices);
+    return data;
+}
+
+MeshData MeshPrimitives::sphere(uint resolution, MeshData::Type type) {
 #define F(x) static_cast<float>(x)
 
     const float radius = 1.f;
@@ -127,9 +142,9 @@ void MeshData::addSphere(uint resolution, MeshData::Type type) {
             indices.insert(indices.end(), {offset, offset_j, offset_i});
             indices.insert(indices.end(), {offset_j, offset_i, offset_i_j});
         }
-
-    m_vertices = std::move(positions);
-    m_indices = std::move(indices);
+    MeshData data;
+    data.m_vertices = std::move(positions);
+    data.m_indices = std::move(indices);
     //    std::vector<glm::vec2> uvs;
     //    uvs.reserve(positions.size());
     //    for (int i = 0; i <= numMeridian; i++)
@@ -138,27 +153,41 @@ void MeshData::addSphere(uint resolution, MeshData::Type type) {
     //        }
 }
 
-void MeshData::addIcosahedron(MeshData::Type type) {
-
-    std::vector<uint> indices{
-        2, 1, 0, 3, 2, 0, 4, 3, 0, 5, 4, 0, 1, 5, 0, 11, 6, 7, 11, 7,
-        8, 11, 8, 9, 11, 9, 10, 11, 10, 6, 1, 2, 6, 2, 3, 7, 3, 4, 8, 4,
-        5, 9, 5, 1, 10, 2, 7, 6, 3, 8, 7, 4, 9, 8, 5, 10, 9, 1, 6, 10};
-
+MeshData MeshPrimitives::cube(float scale_x, float scale_y, float scale_z, MeshData::Type type) {
     std::vector<float> positions{
-        0.000f, 0.000f, 1.000f,
-        0.894f, 0.000f, 0.447f,
-        0.276f, 0.851f, 0.447f,
-        -0.724f, 0.526f, 0.447f,
-        -0.724f, -0.526f, 0.447f,
-        0.276f, -0.851f, 0.447f,
-        0.724f, 0.526f, -0.447f,
-        -0.276f, 0.851f, -0.447f,
-        -0.894f, 0.000f, -0.447f,
-        -0.276f, -0.851f, -0.447f,
-        0.724f, -0.526f, -0.447f,
-        0.000f, 0.000f, -1.000f};
+        -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+        -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f,
+        -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f};
 
-    m_vertices = std::move(positions);
-    m_indices = std::move(indices);
+    std::vector<float> normals{
+        0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
+        0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+
+    std::vector<float> texcoords = {
+        0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+    for (size_t i = 0; i < positions.size(); i += 3) {
+        positions[i] *= scale_x;
+        positions[i + 1] *= scale_y;
+        positions[i + 2] *= scale_z;
+    }
+    MeshData data;
+    //result.m_vertexArray = makeSingleArray(positions, normals, texcoords, type);
+    data.m_vertices = std::move(positions);
+    data.m_indices.resize(36);
+    data.m_type = type;
+    for (uint i = 0; i < 36; i++)
+        data.m_indices[i] = i;
 }

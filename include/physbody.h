@@ -1,5 +1,6 @@
 #ifndef PHYSBODY_H
 #define PHYSBODY_H
+#include <vector>
 
 // PHYSICS WORLD
 class PhysWorld {
@@ -15,12 +16,12 @@ class PhysWorld {
 // COLLISION SHAPE
 class CollisionShape {
   protected:
-    class NewtonCollision *m_collision;
+    class NewtonCollision *m_collision = nullptr;
 
   public:
     CollisionShape(const PhysWorld &world);
-    ~CollisionShape();
-    inline const NewtonCollision *get() { return m_collision; }
+    virtual ~CollisionShape() = 0;
+    const NewtonCollision *get() { return m_collision; }
 };
 
 class CollisionSphere : public CollisionShape {
@@ -28,9 +29,19 @@ class CollisionSphere : public CollisionShape {
     CollisionSphere(const PhysWorld &world, double radius = 1.0);
 };
 
+class CollisionIcosahedron : public CollisionShape {
+  public:
+    CollisionIcosahedron(const PhysWorld &world, double radius = 1.0);
+};
+
 class CollisionCuboid : public CollisionShape {
   public:
     CollisionCuboid(const PhysWorld &world, double w, double l, double h);
+};
+
+class CollisionConvex : public CollisionShape {
+  public:
+    CollisionConvex(const PhysWorld &world, const std::vector<double> points);
 };
 
 // PHYSICS BODY
@@ -51,7 +62,7 @@ class PhysBody {
     void addTorque(const double *torque);
     void addTorque(const double x, const double y, const double z);
     void setOmega(const double *omega);
-    void setMass(const double *mass);
+    void setMassMatrix(const double *mass);
     void getMatrix(double *mat) const;
 
     struct Data {

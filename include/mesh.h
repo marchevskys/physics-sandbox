@@ -9,12 +9,12 @@ class Mesh {
     GLsizei m_IndexCount = 0;
 
   public:
+    Mesh(Mesh &&rhc);
     Mesh(const MeshData &data);
-    Mesh(MeshData &&data) noexcept;
+    Mesh(MeshData &&data);
     void setMeshData(const MeshData &data);
     void render() const;
     ~Mesh();
-    Mesh(Mesh &&rhc);
 
     // define mesh as no-copyable
     Mesh(const Mesh &rhc) = delete;
