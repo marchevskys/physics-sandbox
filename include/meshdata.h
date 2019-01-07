@@ -11,14 +11,18 @@ class MeshData {
     friend struct MeshPrimitives;
 
   public:
-    //clang-format off
     enum class Type { UNDEF,
                       V,
                       VN,
                       VT,
                       VTN,
                       VTNB }; /*vertex, texture, normal, binormal*/
-                              //clang-format on
+
+    enum class VertexAttribute : unsigned char { Normal,
+                                                 Color,
+                                                 TexCoord,
+                                                 Binormal
+    } vertexAttribute;
     MeshData() {}
     MeshData(MeshData &&other);
     MeshData(const MeshData &other);

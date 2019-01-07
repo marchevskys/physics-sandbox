@@ -27,15 +27,21 @@ int main() {
         Game game;
         GameObjectFactory factory(game, game.getPhysWorld());
 
-        game.addCube({0.0, 0.0, 0.0});
-        auto e = game.addSphere({0.0, 0.0, 1.0});
-        //auto e = factory.createSphere(1.0, {0.0, 0.0, 1.0});
-        game.attachControl(e);
+        factory.createCube({10000.0, 10000.0, 1.0}, {0.0, 0.0, -1.0});
+        factory.createVehicle({0.0, 0.0, 0.0});
 
-        for (int i = 0; i < 111; ++i) {
-            auto pos = glm::ballRand<double>(10.0) + glm::dvec3(0, 0, 10);
-            game.addSphere(pos, true);
-        }
+        auto e1 = factory.createSphere(1.0, {2.0, 0.0, 4.0});
+        auto e2 = factory.createSphere(1.0, {6.0, 0.0, 4.0});
+        auto p1 = e1.component<PhysBody>().get();
+        auto p2 = e2.component<PhysBody>().get();
+        p1->setUserJoint(*p2);
+        //auto bodyHandler = e.component<PhysBody>();
+        game.attachControl(e1);
+
+        //        for (int i = 0; i < 111; ++i) {
+        //            auto pos = glm::ballRand<double>(10.0) + glm::dvec3(0, 0, 10);
+        //            game.addSphere(pos, true);
+        //        }
 
         Camera cam(glm::dvec3(20.0, 2.0, 20.0), glm::dvec3(0.0, 0.0, 1.0));
         cam.setFOV(1.4f);
@@ -50,7 +56,7 @@ int main() {
             cam.setAspectRatio(window.getAspectRatio());
 
             static int currentPos = 0;
-            auto pos = game.getPos(e);
+            auto pos = game.getPos(e1);
             prevCamPositions[currentPos++ % prevCamPositions.size()] = pos;
             glm::dvec3 init(0);
             auto finalPos = std::accumulate(prevCamPositions.begin(), prevCamPositions.end(), init) / static_cast<double>(prevCamPositions.size());
@@ -65,6 +71,8 @@ int main() {
             vec = glm::rotate(vec, xx, glm::dvec3(0, 0, 1));
 
             distance *= 1.0 + Control::scrollOffset() * 0.1;
+
+            distance = glm::clamp<double>(distance, 0.001, 1000);
             cam.set(vec * distance + finalPos, glm::dvec3(0.0, 0.0, 0.0) + finalPos);
             game.render(cam);
 

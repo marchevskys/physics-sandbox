@@ -1,5 +1,6 @@
 #ifndef MODEL_H
 #define MODEL_H
+#include <memory>
 
 class Mesh;
 class Shader;
@@ -18,12 +19,14 @@ class Material {
 
 class Model {
   public:
-    Mesh *m_mesh = nullptr;
-    Material m_material;
     Model();
     Model(const Mesh *mesh);
     Model(const Mesh *mesh, const Material material);
-    void render(const double *transform);
+    void render(const double *transform) const;
+
+  protected:
+    Mesh *m_mesh = nullptr;
+    Material m_material;
 };
 
 #endif // MODEL_H

@@ -17,9 +17,6 @@ class Game : public ex::EntityX {
   public:
     ;
     explicit Game();
-    ex::Entity addSphere(const glm::dvec3 &position, bool collision = true);
-    ex::Entity addCube(const glm::dvec3 &position, bool collision = true);
-    void addModelToEntity(ex::Entity e);
     glm::dvec3 getPos(ex::Entity e);
 
     void update(double dt);

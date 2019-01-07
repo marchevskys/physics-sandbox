@@ -77,7 +77,7 @@ void Window::resize(int width, int height) {
 }
 
 // clang-format off
-#define CAPTURED_CURSOR
+//#define CAPTURED_CURSOR
 #ifdef CAPTURED_CURSOR
 #define CURSOR_WINDOW_MODE      GLFW_CURSOR_DISABLED
 #define CURSOR_FULL_SCREEN_MODE GLFW_CURSOR_DISABLED

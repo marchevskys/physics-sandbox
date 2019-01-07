@@ -145,12 +145,14 @@ MeshData MeshPrimitives::sphere(uint resolution, MeshData::Type type) {
     MeshData data;
     data.m_vertices = std::move(positions);
     data.m_indices = std::move(indices);
+    data.m_type = type;
     //    std::vector<glm::vec2> uvs;
     //    uvs.reserve(positions.size());
     //    for (int i = 0; i <= numMeridian; i++)
     //        for (int j = 0; j <= numParallel; j++) {
     //            positions.emplace_back(F(i) / F(numMeridian), F(j) / F(numParallel));
     //        }
+    return data;
 }
 
 MeshData MeshPrimitives::cube(float scale_x, float scale_y, float scale_z, MeshData::Type type) {
@@ -190,4 +192,6 @@ MeshData MeshPrimitives::cube(float scale_x, float scale_y, float scale_z, MeshD
     data.m_type = type;
     for (uint i = 0; i < 36; i++)
         data.m_indices[i] = i;
+
+    return data;
 }

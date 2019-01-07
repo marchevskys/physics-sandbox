@@ -27,6 +27,7 @@ class GameObjectFactory {
     ex::Entity createSphere(double radius, glm::dvec3 pos);
     ex::Entity createCube(glm::dvec3 dimensions, glm::dvec3 pos);
     ex::Entity createIcosahedron(double radius, glm::dvec3 pos);
+    ex::Entity createVehicle(glm::dvec3 pos);
 
     ex::Entity createVehicle(const char *const path, glm::dvec3 pos);
 
@@ -39,10 +40,11 @@ class GameObjectFactory {
                           Custom
     };
 
+    static std::map<MeshType, Mesh *> serializedMeshes;
+
   private:
     entityx::EntityX &m_game;
     const PhysWorld &m_world;
-    static std::map<MeshType, Mesh *> serializedMeshes;
 };
 
 #endif // GAMEOBJECTFACTORY_H

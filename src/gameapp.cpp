@@ -45,7 +45,7 @@ struct ComponentEventReceiver : public ex::Receiver<ComponentEventReceiver> {
 struct UpdateTransformSystem : public ex::System<UpdateTransformSystem> {
     void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
         es.each<Transform, PhysBody>([dt](ex::Entity entity, Transform &transform, PhysBody &body) {
-            body.getMatrix(glm::value_ptr(transform.get()));
+            transform.get() = body.getMatrix();
         });
     }
 };
@@ -63,23 +63,20 @@ struct ControlSystem : public ex::System<ControlSystem> {
     void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
         auto attract = [&es](ex::Entity e1, glm::dvec3 &forceDir, double k) {
             auto comp1 = e1.component<PhysBody>();
-            glm::dvec3 pos1;
+            glm::dvec3 pos1 = comp1.get()->getPos();
             glm::dvec3 e1force(0);
-            comp1.get()->getPos(&pos1[0]);
 
             es.each<PhysBody>([&](ex::Entity e2, PhysBody &body) {
                 auto comp2 = e2.component<PhysBody>();
                 if (comp1 != comp2) {
-                    glm::dvec3 pos2;
-                    comp2.get()->getPos(&pos2[0]);
+                    glm::dvec3 pos2 = comp2.get()->getPos();
                     auto dist = glm::length(pos1 - pos2);
                     glm::dvec3 force = k * (pos1 - pos2) / (dist * dist * dist);
                     /*if (dist > 1.0)*/ {
                         //glm::dvec3 randDir = glm::sphericalRand(1000.0);
-                        forceDir -= force;
 
-                        comp2.get()->addForce(&force[0]);
-                        //comp2.get()->addTorque(&randDir[0]);
+                        comp2.get()->addForce(force);
+                        comp1.get()->addForce(-force);
                     }
                 }
             });
@@ -98,16 +95,27 @@ struct ControlSystem : public ex::System<ControlSystem> {
             auto forceDirLength = glm::length(forceDir);
             if (forceDirLength > 1.0)
                 forceDir /= forceDirLength;
-            forceDir *= 500000;
+            forceDir *= 50;
             if (Control::pressed(Control::Button::Space))
-                attract(entity, forceDir, 18000);
+                attract(entity, forceDir, 180);
             static int exploded = 100;
             exploded++;
             if (Control::pressed(Control::Button::Enter) && exploded > 100) {
-                attract(entity, forceDir, -400000);
+                attract(entity, forceDir, -4000);
                 exploded = 0;
             }
-            body.addForce(&forceDir[0]);
+            if (Control::pressed(Control::Button::A)) {
+                body.setOmega(vec3d(0.0, 0.0, 77.0 * 2.0));
+            }
+
+            if (Control::pressed(Control::Button::D)) {
+                body.addTorque(vec3d(60.0, 0.0, 0.0));
+            }
+            if (Control::pressed(Control::Button::S))
+                body.setOmega(vec3d(0.0, 0.0, 0.0));
+            if (Control::pressed(Control::Button::W))
+                body.setVelocity(vec3d(0.0, 0.0, 0.0));
+            body.addForce(forceDir);
         });
     }
 };
@@ -117,11 +125,6 @@ Game::Game() {
     systems.add<RenderSystem>();
     systems.add<ControlSystem>();
     systems.configure();
-
-    //MeshData data;
-    //data.addIcosahedron();
-
-    m_meshSphere.reset(new Mesh(MeshPrimitives::icosahedron()));
     m_physWorld = new PhysWorld();
 }
 
@@ -136,44 +139,10 @@ void Game::render(Camera &cam) {
     systems.update<RenderSystem>(0.0);
 }
 
-ex::Entity Game::addSphere(const glm::dvec3 &pos, bool collision) {
-    ex::Entity ex = entities.create();
-    ex.assign<Transform>();
-    ex.component<Transform>()->setPos(pos);
-    ex.assign<Model>(m_meshSphere.get());
-    if (collision) {
-        //ex.assign<PhysBody>(*m_physWorld, CollisionSphere(*m_physWorld, 1.0), 1.0, 0.1, 0.1, 0.1);
-        ex.assign<PhysBody>(*m_physWorld, CollisionIcosahedron(*m_physWorld, 1.0), 1.0, 0.6, 0.6, 0.6);
-        ex.component<PhysBody>()->setPos(&pos[0]);
-    }
-    return ex;
-}
-
-entityx::Entity Game::addCube(const glm::dvec3 &pos, bool collision) {
-    ex::Entity ex = entities.create();
-    ex.assign<Transform>();
-    ex.component<Transform>()->setPos(pos);
-    //ex.assign<Model>(m_meshSphere.get());
-    PhysBody::setOrigin(0.0, 0.0, -1.0);
-    ex.assign<PhysBody>(*m_physWorld, CollisionCuboid(*m_physWorld, 100000, 100000, 1.0), 0.0, 0.0, 0.0, 0.0);
-    return ex;
-}
-
-void Game::addModelToEntity(ex::Entity e) {
-    auto modelHandler = e.component<Model>();
-    if (modelHandler) {
-        const auto &model = modelHandler.get();
-    }
-}
-
 void Game::attachControl(ex::Entity e) {
     auto bodyHandler = e.component<PhysBody>();
     if (bodyHandler) {
-
         e.assign<Control>();
-
-        glm::dvec4 massMatrix(10000, 5000, 5000, 5000);
-        bodyHandler.get()->setMassMatrix(&massMatrix[0]);
     }
     auto modelHandler = e.component<Model>();
     if (modelHandler) {
